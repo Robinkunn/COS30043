@@ -166,7 +166,44 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
   }
 }
-    
+
+/* Show Products dropdown on hover (only for desktop) */
+@media (min-width: 992px) {
+  .nav-item.dropdown:hover .pizza-dropdown-menu:not(.dropdown-menu-end) {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    display: block;
+  }
+}
+
+/* Remove the dropdown arrow only from Products */
+.nav-item.dropdown > .nav-link:not(.dropdown-toggle)::after {
+  display: none !important;
+}
+
+/* Keep all Bootstrap dropdown functionality intact */
+.dropdown-toggle::after {
+  display: inline-block !important;
+}
+
+/* Ensure dropdown animations work */
+.pizza-dropdown-menu {
+  border: none;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 10px 0;
+  margin-top: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Mobile specific styles */
+@media (max-width: 992px) {
+  .pizza-dropdown-menu {
+    box-shadow: none;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
 
 /* Homepage */
 /* Section Styling */

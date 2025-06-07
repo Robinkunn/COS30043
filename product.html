@@ -423,7 +423,32 @@
           return new bootstrap.Tooltip(tooltipTriggerEl);
         });
       });
-      
+
+    // Activate tab based on URL hash
+    document.addEventListener('DOMContentLoaded', function () {
+      const hash = window.location.hash;
+      if (hash) {
+        const tabMap = {
+          '#pizzas': 'pizzas-tab',
+          '#sides': 'sides-tab',
+          '#drinks': 'drinks-tab',
+          '#desserts': 'desserts-tab'
+        };
+        const tabId = tabMap[hash];
+        if (tabId) {
+          const tabTrigger = document.getElementById(tabId);
+          if (tabTrigger) {
+            new bootstrap.Tab(tabTrigger).show();
+            // Optionally scroll to menu section
+            const menuSection = document.getElementById('menu');
+            if (menuSection) {
+              menuSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        }
+      }
+    });
+
     // Simulate adding items to cart (for demo purposes)
     document.querySelectorAll('.btn-outline-danger').forEach(button => {
       button.addEventListener('click', function() {

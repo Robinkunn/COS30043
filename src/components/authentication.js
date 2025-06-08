@@ -1,0 +1,271 @@
+window.Authentication = {
+  setup() {
+    const activeTab = Vue.ref('login');
+    const loginForm = Vue.ref({
+      email: '',
+      password: '',
+      remember: false
+    });
+    const registerForm = Vue.ref({
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      agreeTerms: false
+    });
+    
+    const handleLogin = () => {
+      console.log('Login submitted:', loginForm.value);
+      // Add your login logic here
+    };
+    
+    const handleRegister = () => {
+      console.log('Register submitted:', registerForm.value);
+      // Add your registration logic here
+    };
+    
+    return { activeTab, loginForm, registerForm, handleLogin, handleRegister };
+  },
+  template: `
+    <div class="auth-page" style="
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    ">
+      <!-- Video Background -->
+      <div class="video-background" style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        overflow: hidden;
+      ">
+        <video autoplay muted loop playsinline style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        ">
+          <source src="src/videos/login_background.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <div class="video-overlay" style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.6);
+        "></div>
+      </div>
+      
+      <!-- Auth Container -->
+      <div class="auth-container" style="
+        width: 100%;
+        max-width: 500px;
+        padding: 20px;
+      ">
+        <div class="auth-card" style="
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+          overflow: hidden;
+          padding: 30px;
+        ">
+          <div class="brand-logo" style="
+            text-align: center;
+            margin-bottom: 30px;
+          ">
+            <img src="https://via.placeholder.com/150x50?text=Pizza+Hat" alt="Pizza Hat" style="max-width: 150px;">
+          </div>
+          
+          <!-- Tabs Navigation -->
+          <ul class="nav nav-tabs" id="authTabs" style="
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 25px;
+          ">
+            <li class="nav-item">
+              <button 
+                class="nav-link" 
+                :class="{ 'active': activeTab === 'login' }" 
+                @click="activeTab = 'login'"
+                style="
+                  border: none;
+                  color: #6c757d;
+                  font-weight: 500;
+                  padding: 10px 20px;
+                "
+                :style="activeTab === 'login' ? 'color: #dc3545; background: transparent; border-bottom: 2px solid #dc3545;' : ''"
+              >
+                Sign In
+              </button>
+            </li>
+            <li class="nav-item">
+              <button 
+                class="nav-link" 
+                :class="{ 'active': activeTab === 'register' }" 
+                @click="activeTab = 'register'"
+                style="
+                  border: none;
+                  color: #6c757d;
+                  font-weight: 500;
+                  padding: 10px 20px;
+                "
+                :style="activeTab === 'register' ? 'color: #dc3545; background: transparent; border-bottom: 2px solid #dc3545;' : ''"
+              >
+                Create Account
+              </button>
+            </li>
+          </ul>
+          
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <!-- Login Form -->
+            <div class="tab-pane" :class="{ 'active': activeTab === 'login' }">
+              <form @submit.prevent="handleLogin" class="auth-form">
+                <div class="mb-3">
+                  <label for="loginEmail" class="form-label">Email address</label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    id="loginEmail" 
+                    v-model="loginForm.email"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3">
+                  <label for="loginPassword" class="form-label">Password</label>
+                  <input 
+                    type="password" 
+                    class="form-control" 
+                    id="loginPassword" 
+                    v-model="loginForm.password"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3 form-check">
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input" 
+                    id="rememberMe"
+                    v-model="loginForm.remember"
+                  >
+                  <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" style="
+                  padding: 12px;
+                  font-weight: 600;
+                ">Sign In</button>
+                <div class="text-center mt-3">
+                  <a href="#" class="text-muted">Forgot password?</a>
+                </div>
+              </form>
+            </div>
+            
+            <!-- Register Form -->
+            <div class="tab-pane" :class="{ 'active': activeTab === 'register' }">
+              <form @submit.prevent="handleRegister" class="auth-form">
+                <div class="mb-3">
+                  <label for="registerName" class="form-label">Full Name</label>
+                  <input 
+                    type="text" 
+                    class="form-control" 
+                    id="registerName" 
+                    v-model="registerForm.name"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3">
+                  <label for="registerEmail" class="form-label">Email address</label>
+                  <input 
+                    type="email" 
+                    class="form-control" 
+                    id="registerEmail" 
+                    v-model="registerForm.email"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3">
+                  <label for="registerPassword" class="form-label">Password</label>
+                  <input 
+                    type="password" 
+                    class="form-control" 
+                    id="registerPassword" 
+                    v-model="registerForm.password"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3">
+                  <label for="confirmPassword" class="form-label">Confirm Password</label>
+                  <input 
+                    type="password" 
+                    class="form-control" 
+                    id="confirmPassword" 
+                    v-model="registerForm.confirmPassword"
+                    required
+                    style="
+                      padding: 12px 15px;
+                      margin-bottom: 15px;
+                    "
+                  >
+                </div>
+                <div class="mb-3 form-check">
+                  <input 
+                    type="checkbox" 
+                    class="form-check-input" 
+                    id="agreeTerms"
+                    v-model="registerForm.agreeTerms"
+                    required
+                  >
+                  <label class="form-check-label" for="agreeTerms">
+                    I agree to the <a href="#">Terms and Conditions</a>
+                  </label>
+                </div>
+                <button type="submit" class="btn btn-danger w-100" style="
+                  padding: 12px;
+                  font-weight: 600;
+                ">Create Account</button>
+              </form>
+            </div>
+          </div>
+          
+          <div class="auth-footer text-center mt-3" style="font-size: 14px;">
+            <p class="text-muted">
+              {{ activeTab === 'login' ? "Don't have an account?" : "Already have an account?" }}
+              <a href="#" @click.prevent="activeTab = activeTab === 'login' ? 'register' : 'login'" style="
+                color: #dc3545;
+                text-decoration: none;
+                font-weight: 500;
+              ">
+                {{ activeTab === 'login' ? 'Sign up' : 'Sign in' }}
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+};

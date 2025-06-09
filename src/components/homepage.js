@@ -55,7 +55,7 @@ window.HomePage = {
       <div class="video-hero">
         <div class="video-wrapper">
           <video autoplay muted loop playsinline class="hero-video">
-            <source src="src/videos/login_background.mp4" type="video/mp4" />
+            <source src="src/videos/homepage_background.mov" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
         </div>
@@ -92,7 +92,9 @@ window.HomePage = {
             </div>
           </div>
           <div class="text-center mt-5">
-            <router-link to="/products" class="btn btn-danger btn-lg">View Full Menu</router-link>
+            <router-link to="/product" class="btn btn-danger btn-lg px-4 py-2">
+              View Full Menu <i class="bi bi-arrow-right ms-2"></i>
+            </router-link>
           </div>
         </div>
       </section>

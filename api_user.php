@@ -1,0 +1,125 @@
+<?php
+// Reference:
+// https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
+
+// Use this API for demonstration purposes only
+
+
+// get the HTTP method, path and body of the request
+$method = $_SERVER['REQUEST_METHOD'];
+$request = explode('/', trim($_SERVER['PATH_INFO'] ?? '','/'));
+$input = json_decode(file_get_contents('php://input'),true);  // json string to associative array(true)
+
+// connect to the mysql database, provide the appropriate credentials
+$conn = mysqli_connect('localhost', 'root', '', 'cos30043');
+mysqli_set_charset($conn,'utf8');
+
+// initialise the table name accordingly
+$table = "users";
+
+// retrieve the search key field name and value from the path
+$fld = preg_replace('/[^a-z0-9_]+/i','',array_shift($request));
+$key = array_shift($request);
+
+// --- API logic ---
+if ($method === 'POST') {
+    // Registration
+    if (isset($_GET['action']) && $_GET['action'] === 'register') {
+        // Expect JSON input
+        $username = mysqli_real_escape_string($conn, $input['username'] ?? '');
+        $name = mysqli_real_escape_string($conn, $input['name'] ?? '');
+        $email = mysqli_real_escape_string($conn, $input['email'] ?? '');
+        $phone = mysqli_real_escape_string($conn, $input['phone'] ?? '');
+        $password = mysqli_real_escape_string($conn, $input['password'] ?? '');
+        $address = $input['address'] ?? [];
+        $street = mysqli_real_escape_string($conn, $address['street'] ?? '');
+        $city = mysqli_real_escape_string($conn, $address['city'] ?? '');
+        $state = mysqli_real_escape_string($conn, $address['state'] ?? '');
+        $zip = mysqli_real_escape_string($conn, $address['zip'] ?? '');
+
+        // Check if username or email already exists
+        $exists = mysqli_query($conn, "SELECT id FROM `$table` WHERE username='$username' OR email='$email'");
+        if (mysqli_num_rows($exists) > 0) {
+            echo json_encode(['success' => false, 'message' => 'Username or email already exists.']);
+            mysqli_close($conn);
+            exit;
+        }
+
+        // Insert new user
+        $sql = "INSERT INTO `$table` (username, name, email, phone, password, street, city, state, zip)
+                VALUES ('$username', '$name', '$email', '$phone', '$password', '$street', '$city', '$state', '$zip')";
+        if (mysqli_query($conn, $sql)) {
+            echo json_encode(['success' => true, 'message' => 'Registration successful!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Registration failed.']);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+
+    // Update user profile
+    if (isset($_GET['action']) && $_GET['action'] === 'update_profile') {
+        // Expect JSON input
+        $username = mysqli_real_escape_string($conn, $input['username'] ?? '');
+        $name = mysqli_real_escape_string($conn, $input['name'] ?? '');
+        $email = mysqli_real_escape_string($conn, $input['email'] ?? '');
+        $phone = mysqli_real_escape_string($conn, $input['phone'] ?? '');
+        $address = $input['address'] ?? [];
+        $street = mysqli_real_escape_string($conn, $address['street'] ?? '');
+        $city = mysqli_real_escape_string($conn, $address['city'] ?? '');
+        $state = mysqli_real_escape_string($conn, $address['state'] ?? '');
+        $zip = mysqli_real_escape_string($conn, $address['zip'] ?? '');
+
+        // Only update if username is provided
+        if (!$username) {
+            echo json_encode(['success' => false, 'message' => 'Username is required for update.']);
+            mysqli_close($conn);
+            exit;
+        }
+
+        $sql = "UPDATE `$table` SET 
+                    name='$name',
+                    email='$email',
+                    phone='$phone',
+                    street='$street',
+                    city='$city',
+                    state='$state',
+                    zip='$zip'
+                WHERE username='$username'";
+
+        if (mysqli_query($conn, $sql)) {
+            echo json_encode(['success' => true, 'message' => 'Profile updated successfully!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update profile.']);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+
+    // Login
+    // Accept both application/x-www-form-urlencoded and JSON
+    if (strpos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {
+        $username = $input['username'] ?? '';
+        $password = $input['password'] ?? '';
+    } else {
+        $username = $_POST['username'] ?? '';
+        $password = $_POST['password'] ?? '';
+    }
+    $username = mysqli_real_escape_string($conn, $username);
+    $password = mysqli_real_escape_string($conn, $password);
+
+    $sql = "SELECT * FROM `$table` WHERE username='$username' AND password='$password' LIMIT 1";
+    $result = mysqli_query($conn, $sql);
+    if ($user = mysqli_fetch_assoc($result)) {
+        unset($user['password']); // Don't return password
+        echo json_encode(['success' => true, 'message' => 'Login successful!', 'user' => $user]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid username or password.']);
+    }
+    mysqli_close($conn);
+    exit;
+}
+
+// close mysql connection
+mysqli_close($conn);
+?>

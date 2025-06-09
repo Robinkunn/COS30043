@@ -1,19 +1,47 @@
 window.NavBar = {
   setup() {
-    const { ref, onMounted } = Vue;
+    const { ref, onMounted, watch } = Vue;
     const router = VueRouter.useRouter();
 
     // --- Reactive Data ---
     const user = ref({
-      name: 'Jane Doe',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg'
+      name: '',
+      avatar: 'https://randomuser.me/api/portraits/women/44.jpg' // Default avatar
     });
 
     const orderCount = ref(3);
     const cartItemCount = ref(5);
     
+    // Function to load user data from sessionStorage
+    const loadUserData = () => {
+      const storedUser = sessionStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          user.value = {
+            name: userData.name || userData.username || 'User',
+            avatar: userData.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'
+          };
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          // Fallback to empty name if parsing fails
+          user.value.name = '';
+        }
+      } else {
+        // No user logged in, clear the name
+        user.value.name = '';
+      }
+    };
+    
     // --- Lifecycle Hooks ---
     onMounted(() => {
+      // Load user data on component mount
+      loadUserData();
+      
+      // Listen for storage changes (in case user logs in/out in another tab)
+      window.addEventListener('storage', loadUserData);
+      
+      // Initialize Bootstrap tooltips
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -38,12 +66,21 @@ window.NavBar = {
       });
     }
 
+    // Function to handle logout (you might want to add this)
+    const handleLogout = () => {
+      sessionStorage.removeItem('user');
+      loadUserData(); // Refresh user data
+      router.push('/auth'); // Redirect to login page
+    };
+
     return {
       user,
       orderCount,
       cartItemCount,
       goToOurStory,
       goToFooter,
+      handleLogout,
+      loadUserData
     };
   },
   template: `
@@ -172,6 +209,22 @@ window.NavBar = {
         border-color: #d9230f;
       }
       
+      .login-btn {
+        background-color: #d9230f;
+        border-color: #d9230f;
+        color: white;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+      }
+      
+      .login-btn:hover {
+        background-color: #b71c0c;
+        border-color: #b71c0c;
+        transform: translateY(-2px);
+      }
+      
       @media (max-width: 992px) {
         .pizza-dropdown-menu {
           box-shadow: none;
@@ -224,37 +277,48 @@ window.NavBar = {
           
           <!-- Right side items -->
           <div class="d-flex align-items-center">
-            <!-- Order button -->
-            <router-link to="/my_purchase" custom v-slot="{ navigate, href }">
-              <button
-                type="button"
-                class="pizza-nav-btn btn btn-outline-primary me-3 position-relative"
-                :href="href"
-                @click="navigate"
-                data-bs-toggle="tooltip"
-                data-bs-placement="bottom"
-                title="Track your orders"
-              >
-                <i class="pizza-nav-icon bi bi-clipboard-check me-1"></i>
-                <span class="d-none d-md-inline">My Purchase</span>
-                <span v-if="orderCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  {{ orderCount }}
-                  <span class="visually-hidden">unread orders</span>
-                </span>
-              </button>
-            </router-link>
+            <!-- Show these only if user is logged in -->
+            <template v-if="user.name">
+              <!-- Order button -->
+              <router-link to="/my_purchase" custom v-slot="{ navigate, href }">
+                <button
+                  type="button"
+                  class="pizza-nav-btn btn btn-outline-primary me-3 position-relative"
+                  :href="href"
+                  @click="navigate"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="bottom"
+                  title="Track your orders"
+                >
+                  <i class="pizza-nav-icon bi bi-clipboard-check me-1"></i>
+                  <span class="d-none d-md-inline">My Purchase</span>
+                  <span v-if="orderCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ orderCount }}
+                    <span class="visually-hidden">unread orders</span>
+                  </span>
+                </button>
+              </router-link>
+              
+              <!-- Cart -->
+              <router-link to="/cart" class="pizza-nav-cart position-relative me-3">
+                <i class="pizza-nav-icon bi bi-cart3"></i>
+                <span v-if="cartItemCount > 0" class="pizza-badge-notification">{{ cartItemCount }}</span>
+              </router-link>
+              
+              <!-- User section (navigates to /account) -->
+              <router-link to="/account" class="pizza-nav-link nav-link d-flex align-items-center ms-2" style="cursor:pointer;">
+                <img :src="user.avatar" :alt="user.name" class="pizza-nav-avatar me-2">
+                <span class="d-none d-lg-inline">{{ user.name }}</span>
+              </router-link>
+            </template>
             
-            <!-- Cart -->
-            <router-link to="/cart" class="pizza-nav-cart position-relative me-3">
-              <i class="pizza-nav-icon bi bi-cart3"></i>
-              <span v-if="cartItemCount > 0" class="pizza-badge-notification">{{ cartItemCount }}</span>
-            </router-link>
-            
-            <!-- User section (no dropdown, navigates to /account) -->
-            <router-link to="/account" class="pizza-nav-link nav-link d-flex align-items-center ms-2" style="cursor:pointer;">
-              <img :src="user.avatar" :alt="user.name" class="pizza-nav-avatar me-2">
-              <span class="d-none d-lg-inline">{{ user.name }}</span>
-            </router-link>
+            <!-- Show login button if user is not logged in -->
+            <template v-else>
+              <router-link to="/authentication" class="btn login-btn">
+                <i class="bi bi-person-circle me-1"></i>
+                Login
+              </router-link>
+            </template>
           </div>
         </div>
       </div>

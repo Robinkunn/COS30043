@@ -1,6 +1,7 @@
 window.NavBar = {
   setup() {
     const { ref, onMounted } = Vue;
+    const router = VueRouter.useRouter();
 
     // --- Reactive Data ---
     const user = ref({
@@ -19,10 +20,30 @@ window.NavBar = {
       });
     });
 
+    function goToOurStory() {
+      router.push('/').then(() => {
+        setTimeout(() => {
+          const el = document.getElementById('our-story');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      });
+    }
+
+    function goToFooter() {
+      router.push('/').then(() => {
+        setTimeout(() => {
+          const el = document.getElementById('footer');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 300);
+      });
+    }
+
     return {
       user,
       orderCount,
       cartItemCount,
+      goToOurStory,
+      goToFooter,
     };
   },
   template: `
@@ -182,22 +203,22 @@ window.NavBar = {
             <li class="nav-item">
               <router-link to="/" class="pizza-nav-link nav-link" exact-active-class="router-link-active">Home</router-link>
             </li>
-            <li class="nav-item dropdown">
-              <a class="pizza-nav-link nav-link dropdown-toggle" href="#" id="pizzaProductsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Products
-              </a>
-              <ul class="pizza-dropdown-menu dropdown-menu" aria-labelledby="pizzaProductsDropdown">
-                <li><router-link class="dropdown-item" to="/product">Pizzas</router-link></li>
-                <li><router-link class="dropdown-item" to="/product">Sides</router-link></li>
-                <li><router-link class="dropdown-item" to="/product">Drinks</router-link></li>
-                <li><router-link class="dropdown-item" to="/product">Dessert</router-link></li>
-              </ul>
+            <li class="nav-item">
+              <router-link to="/product" class="pizza-nav-link nav-link" active-class="router-link-active">Products</router-link>
             </li>
             <li class="nav-item">
-              <router-link to="/about" class="pizza-nav-link nav-link" active-class="router-link-active">About</router-link>
+              <a
+                href="#"
+                class="pizza-nav-link nav-link"
+                @click.prevent="goToOurStory"
+              >About</a>
             </li>
             <li class="nav-item">
-              <router-link to="/contact" class="pizza-nav-link nav-link" active-class="router-link-active">Contact</router-link>
+              <a
+                href="#"
+                class="pizza-nav-link nav-link"
+                @click.prevent="goToFooter"
+              >Contact</a>
             </li>
           </ul>
           
@@ -229,18 +250,11 @@ window.NavBar = {
               <span v-if="cartItemCount > 0" class="pizza-badge-notification">{{ cartItemCount }}</span>
             </router-link>
             
-            <!-- User dropdown -->
-            <div class="nav-item dropdown">
-              <a class="pizza-nav-link nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <img :src="user.avatar" :alt="user.name" class="pizza-nav-avatar me-2">
-                <span class="d-none d-lg-inline">{{ user.name }}</span>
-              </a>
-              <ul class="pizza-dropdown-menu dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                <li><router-link class="dropdown-item" to="/account"><i class="bi bi-person me-2"></i>Profile</router-link></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><router-link class="dropdown-item text-danger" to="/authentication"><i class="bi bi-box-arrow-right me-2"></i>Logout</router-link></li>
-              </ul>
-            </div>
+            <!-- User section (no dropdown, navigates to /account) -->
+            <router-link to="/account" class="pizza-nav-link nav-link d-flex align-items-center ms-2" style="cursor:pointer;">
+              <img :src="user.avatar" :alt="user.name" class="pizza-nav-avatar me-2">
+              <span class="d-none d-lg-inline">{{ user.name }}</span>
+            </router-link>
           </div>
         </div>
       </div>

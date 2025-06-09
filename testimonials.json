@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Sarah J.",
+    "img": "https://randomuser.me/api/portraits/women/32.jpg",
+    "rating": 5,
+    "comment": "The Margherita pizza took me right back to my trip to Naples! The crust is perfectly chewy with just the right amount of char."
+  },
+  {
+    "name": "Michael T.",
+    "img": "https://randomuser.me/api/portraits/men/45.jpg",
+    "rating": 5,
+    "comment": "Best pepperoni pizza in town! The ingredients are top quality and you can taste the difference. My family comes here every Friday."
+  },
+  {
+    "name": "Emily R.",
+    "img": "https://randomuser.me/api/portraits/women/68.jpg",
+    "rating": 4.5,
+    "comment": "The Quattro Formaggi is to die for! So creamy and flavorful. The restaurant has such a cozy atmosphere too."
+  }
+]

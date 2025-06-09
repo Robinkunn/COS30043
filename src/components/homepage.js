@@ -1,53 +1,36 @@
 window.HomePage = {
   setup() {
-    const pizzas = Vue.ref([
-      {
-        name: "Margherita",
-        desc: "Classic pizza with tomato sauce, mozzarella, and fresh basil",
-        img: "https://images.unsplash.com/photo-1513104890138-7c749659a591",
-        price: "$12.99",
-      },
-      {
-        name: "Pepperoni",
-        desc: "Tomato sauce, mozzarella, and spicy pepperoni",
-        img: "https://images.unsplash.com/photo-1593504049359-74330189a345",
-        price: "$14.99",
-      },
-      {
-        name: "Quattro Formaggi",
-        desc: "Four cheese blend with mozzarella, gorgonzola, parmesan",
-        img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3",
-        price: "$15.99",
-      },
-      {
-        name: "Diavola",
-        desc: "Spicy salami, tomato sauce, mozzarella, and chili flakes",
-        img: "https://images.unsplash.com/photo-1620374645498-af6bd681a0bd",
-        price: "$16.99",
-      },
-    ]);
+    const { ref, onMounted } = Vue;
 
-    const testimonials = Vue.ref([
-      {
-        name: "Sarah J.",
-        img: "https://randomuser.me/api/portraits/women/32.jpg",
-        rating: 5,
-        comment: "The Margherita pizza took me right back to my trip to Naples! The crust is perfectly chewy with just the right amount of char."
-      },
-      {
-        name: "Michael T.",
-        img: "https://randomuser.me/api/portraits/men/45.jpg",
-        rating: 5,
-        comment: "Best pepperoni pizza in town! The ingredients are top quality and you can taste the difference. My family comes here every Friday."
-      },
-      {
-        name: "Emily R.",
-        img: "https://randomuser.me/api/portraits/women/68.jpg",
-        rating: 4.5,
-        comment: "The Quattro Formaggi is to die for! So creamy and flavorful. The restaurant has such a cozy atmosphere too."
+    // Initialize state with empty arrays
+    const pizzas = ref([]);
+    const testimonials = ref([]);
+
+    // Fetch data from external JSON files when the component is mounted
+    onMounted(async () => {
+      try {
+        // Fetch both products and testimonials at the same time
+        const [pizzaResponse, testimonialResponse] = await Promise.all([
+          fetch('products.json'),
+          fetch('testimonials.json')
+        ]);
+
+        if (!pizzaResponse.ok || !testimonialResponse.ok) {
+          throw new Error('Network response was not ok.');
+        }
+
+        const pizzaData = await pizzaResponse.json();
+        const testimonialData = await testimonialResponse.json();
+
+        // Update the state with the fetched data
+        pizzas.value = pizzaData.pizzas.slice(0, 4); // Only show the first four pizzas
+        testimonials.value = testimonialData;
+        
+      } catch (error) {
+        console.error("Failed to fetch page data:", error);
       }
-    ]);
-
+    });
+    
     const renderStars = (rating) => {
       const stars = [];
       const fullStars = Math.floor(rating);
@@ -83,7 +66,6 @@ window.HomePage = {
               <p class="hero-subtitle">Handcrafted with the finest ingredients and traditional recipes passed down through generations.</p>
               <div class="hero-buttons">
                 <router-link to="/product" class="btn btn-primary btn-lg me-3">Order Now</router-link>
-                <router-link to="/about" class="btn btn-outline-light btn-lg">Our Story</router-link>
               </div>
             </div>
           </div>
@@ -129,9 +111,6 @@ window.HomePage = {
               <p>Founded in 1985 by Italian immigrant Giovanni Rossi, Pizza Hat brings authentic Neapolitan pizza to your table. Our recipes have been passed down through three generations of pizza makers in Naples.</p>
               <p>We use only the finest ingredients imported directly from Italy, including San Marzano tomatoes, fresh buffalo mozzarella, and extra virgin olive oil from Tuscany.</p>
               <p>Our wood-fired oven reaches 900°F, cooking each pizza in just 90 seconds for that perfect char and texture that Naples is famous for.</p>
-              <div class="mt-4">
-                <a href="#" class="btn btn-outline-danger">Learn More About Us</a>
-              </div>
             </div>
           </div>
         </div>
@@ -224,7 +203,7 @@ window.HomePage = {
           <hr class="my-4 bg-secondary">
           <div class="row">
             <div class="col-md-6 text-center text-md-start">
-              <p class="mb-0">&copy; 2023 Pizza Hat. All rights reserved.</p>
+              <p class="mb-0">© 2023 Pizza Hat. All rights reserved.</p>
             </div>
             <div class="col-md-6 text-center text-md-end">
               <p class="mb-0">Designed with <i class="bi bi-heart-fill text-danger"></i> by our team</p>

@@ -33,6 +33,7 @@ const routes = [
   { path: '/my_purchase', component: MyPurchase },
   { path: '/authentication', component: Authentication },
   { path: '/account', component: Account },
+  { path: '/cart', component: Cart },
 ];
 
 const router = createRouter({
@@ -43,9 +44,15 @@ const router = createRouter({
 // Root App with NavBar and router-view
 const App = {
   components: { NavBar },
+  computed: {
+    showNavBar() {
+      // Hide NavBar only on /authentication route
+      return this.$route.path !== '/authentication';
+    }
+  },
   template: `
     <div>
-      <NavBar />
+      <NavBar v-if="showNavBar" />
       <router-view></router-view>
     </div>
   `

@@ -79,7 +79,7 @@ window.Authentication = {
             text-align: center;
             margin-bottom: 30px;
           ">
-            <img src="https://via.placeholder.com/150x50?text=Pizza+Hat" alt="Pizza Hat" style="max-width: 150px;">
+            <img src="src/images/logo.png" alt="Pizza Hat" style="max-width: 150px;">
           </div>
           
           <!-- Tabs Navigation -->

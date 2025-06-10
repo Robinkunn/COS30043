@@ -104,6 +104,18 @@ window.Product = {
     };
 
     const addToCart = (item) => {
+      // Check if user is logged in
+      const user = JSON.parse(sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser') || 'null');
+      if (!user || !user.id) {
+        if (confirm('You must login first to add items to your cart.\n\nGo to login page?')) {
+          // Use Vue Router to navigate
+          window.location.hash = '#/authentication';
+          // Or, if you have access to the router instance:
+          // router.push('/authentication');
+        }
+        return;
+      }
+
       // Get the current cart from sessionStorage, or create an empty array if it doesn't exist
       let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
 
@@ -120,8 +132,8 @@ window.Product = {
           name: item.name,
           price: item.price,
           quantity: 1,
-          image: item.img, // Use the product image for the cart
-          inStock: true // Assuming all displayed items are in stock
+          image: item.img,
+          inStock: true
         });
       }
 

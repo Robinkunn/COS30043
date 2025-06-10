@@ -49,6 +49,16 @@ window.HomePage = {
 
     // Add to Cart logic (copied from product.js)
     const addToCart = (item) => {
+      // Check if user is logged in
+      const user = JSON.parse(sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser') || 'null');
+      if (!user || !user.id) {
+        if (confirm('You must login first to add items to your cart.\n\nGo to login page?')) {
+          window.location.hash = '#/authentication';
+          // If you use Vue Router instance, you can use: router.push('/authentication');
+        }
+        return;
+      }
+
       let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
       const existingItem = cart.find(cartItem => cartItem.id === item.id);
 

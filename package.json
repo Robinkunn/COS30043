@@ -1,0 +1,20 @@
+{
+  "name": "cos30043",
+  "version": "1.0.0",
+  "description": "COS30043 Interface Design and Development",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Robinkunn/COS30043.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Robinkunn/COS30043/issues"
+  },
+  "homepage": "https://github.com/Robinkunn/COS30043#readme"
+}

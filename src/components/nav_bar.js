@@ -10,8 +10,8 @@ window.NavBar = {
     });
 
     const orderCount = ref(3);
-    const cartItemCount = ref(5);
-    
+    const cartItemCount = ref(0);
+
     // Function to load user data from sessionStorage
     const loadUserData = () => {
       const storedUser = sessionStorage.getItem('user');
@@ -32,15 +32,36 @@ window.NavBar = {
         user.value.name = '';
       }
     };
-    
+
+    // Function to load cart count from sessionStorage
+    const loadCartCount = () => {
+      const cart = sessionStorage.getItem('cart');
+      if (cart) {
+        try {
+          const cartArr = JSON.parse(cart);
+          cartItemCount.value = cartArr.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        } catch (e) {
+          cartItemCount.value = 0;
+        }
+      } else {
+        cartItemCount.value = 0;
+      }
+    };
+
     // --- Lifecycle Hooks ---
     onMounted(() => {
-      // Load user data on component mount
       loadUserData();
-      
-      // Listen for storage changes (in case user logs in/out in another tab)
-      window.addEventListener('storage', loadUserData);
-      
+      loadCartCount();
+
+      // Listen for storage changes (in case user logs in/out or cart changes in another tab)
+      window.addEventListener('storage', () => {
+        loadUserData();
+        loadCartCount();
+      });
+
+      // Optionally, update cart count when navigating (for SPA)
+      window.addEventListener('focus', loadCartCount);
+
       // Initialize Bootstrap tooltips
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -292,10 +313,6 @@ window.NavBar = {
                 >
                   <i class="pizza-nav-icon bi bi-clipboard-check me-1"></i>
                   <span class="d-none d-md-inline">My Purchase</span>
-                  <span v-if="orderCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {{ orderCount }}
-                    <span class="visually-hidden">unread orders</span>
-                  </span>
                 </button>
               </router-link>
               

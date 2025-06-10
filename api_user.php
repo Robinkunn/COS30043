@@ -23,6 +23,35 @@ $key = array_shift($request);
 
 // --- API logic ---
 if ($method === 'POST') {
+    // --- Save Cart Action ---
+    if (isset($_GET['action']) && $_GET['action'] === 'save_cart') {
+        $user_id = $input['user_id'] ?? null;
+        // Get the cart_items as a raw JSON string
+        $cart_items_json = isset($input['cart_items']) ? json_encode($input['cart_items']) : null;
+
+        if (!$user_id) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'User ID is required.']);
+            mysqli_close($conn);
+            exit;
+        }
+
+        // Use a prepared statement to prevent SQL injection
+        $stmt = mysqli_prepare($conn, "UPDATE `$table` SET cart_items = ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt, 'ss', $cart_items_json, $user_id);
+
+        if (mysqli_stmt_execute($stmt)) {
+            echo json_encode(['success' => true, 'message' => 'Cart saved successfully.']);
+        } else {
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => 'Failed to save cart.']);
+        }
+        mysqli_stmt_close($stmt);
+        mysqli_close($conn);
+        exit;
+    }
+
+
     // Registration
     if (isset($_GET['action']) && $_GET['action'] === 'register') {
         // Expect JSON input
@@ -37,17 +66,31 @@ if ($method === 'POST') {
         $state = mysqli_real_escape_string($conn, $address['state'] ?? '');
         $zip = mysqli_real_escape_string($conn, $address['zip'] ?? '');
 
-        // Check if username or email already exists
-        $exists = mysqli_query($conn, "SELECT id FROM `$table` WHERE username='$username' OR email='$email'");
-        if (mysqli_num_rows($exists) > 0) {
-            echo json_encode(['success' => false, 'message' => 'Username or email already exists.']);
+        // Check if email already exists
+        $check_email = mysqli_query($conn, "SELECT id FROM `$table` WHERE email='$email'");
+        if (mysqli_num_rows($check_email) > 0) {
+            echo json_encode(['success' => false, 'message' => 'Email already exists, please try another one.']);
+            mysqli_close($conn);
+            exit;
+        }
+
+        // Check if username already exists
+        $check_username = mysqli_query($conn, "SELECT id FROM `$table` WHERE username='$username'");
+        if (mysqli_num_rows($check_username) > 0) {
+            echo json_encode(['success' => false, 'message' => 'Username already exists.']);
             mysqli_close($conn);
             exit;
         }
 
         // Insert new user
-        $sql = "INSERT INTO `$table` (username, name, email, phone, password, street, city, state, zip)
-                VALUES ('$username', '$name', '$email', '$phone', '$password', '$street', '$city', '$state', '$zip')";
+        // Generate a random 4-5 digit user ID with 'U_' prefix and ensure it's unique
+        do {
+            $user_id = 'U_' . rand(1000, 99999);
+            $check_id = mysqli_query($conn, "SELECT id FROM `$table` WHERE id='$user_id'");
+        } while (mysqli_num_rows($check_id) > 0);
+
+        $sql = "INSERT INTO `$table` (id, username, name, email, phone, password, street, city, state, zip)
+                VALUES ('$user_id', '$username', '$name', '$email', '$phone', '$password', '$street', '$city', '$state', '$zip')";
         if (mysqli_query($conn, $sql)) {
             echo json_encode(['success' => true, 'message' => 'Registration successful!']);
         } else {

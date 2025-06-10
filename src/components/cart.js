@@ -1,45 +1,33 @@
 // cart.js
 window.Cart = {
   setup() {
-    const { ref, computed } = Vue;
+    const { ref, computed, onMounted } = Vue;
+    const router = VueRouter.useRouter();
 
     // --- Reactive State ---
-    const cartItems = ref([
-      {
-        id: 1,
-        name: 'Wireless Bluetooth Headphones',
-        price: 79.99,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=80&h=80&fit=crop',
-        inStock: true
-      },
-      {
-        id: 2,
-        name: 'Phone Case - Black',
-        price: 24.98,
-        quantity: 2,
-        image: 'https://images.unsplash.com/photo-1587324104999-317133604dc1?w=80&h=80&fit=crop',
-        inStock: true
-      },
-      {
-        id: 3,
-        name: 'USB-C Cable (3 pack)',
-        price: 19.99,
-        quantity: 1,
-        image: 'https://images.unsplash.com/photo-1583863718228-56a86c639414?w=80&h=80&fit=crop',
-        inStock: false
-      }
-    ]);
+    // The cartItems are now loaded from sessionStorage instead of being hardcoded.
+    const cartItems = ref([]);
 
+    // --- Helper Functions to manage sessionStorage ---
+    const saveCart = () => {
+      sessionStorage.setItem('cart', JSON.stringify(cartItems.value));
+    };
+
+    const loadCart = () => {
+      const savedCart = sessionStorage.getItem('cart');
+      if (savedCart) {
+        cartItems.value = JSON.parse(savedCart);
+      }
+    };
+    
     // --- Computed Properties ---
     const subtotal = computed(() => {
-      return cartItems.value.reduce((total, item) => {
-        return total + (item.price * item.quantity);
-      }, 0);
+      return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0);
     });
 
     const shipping = computed(() => {
-      return subtotal.value > 50 ? 0 : 5.99;
+      // Set fixed shipping fee to RM5, free if cart is empty.
+      return cartItems.value.length > 0 ? 5.00 : 0;
     });
 
     const tax = computed(() => {
@@ -51,25 +39,53 @@ window.Cart = {
     });
 
     const itemCount = computed(() => {
-      return cartItems.value.reduce((count, item) => {
-        return count + item.quantity;
-      }, 0);
+      return cartItems.value.reduce((count, item) => count + item.quantity, 0);
     });
 
     // --- Methods ---
     const removeItem = (itemId) => {
       cartItems.value = cartItems.value.filter(item => item.id !== itemId);
+      saveCart(); // Save changes to sessionStorage
     };
 
     const updateQuantity = (itemId, newQuantity) => {
-      if (newQuantity < 1) return;
       const item = cartItems.value.find(item => item.id === itemId);
-      if (item) item.quantity = newQuantity;
+      if (item) {
+        if (newQuantity < 1) {
+          // If quantity goes below 1, remove the item
+          removeItem(itemId);
+        } else {
+          item.quantity = newQuantity;
+          saveCart(); // Save changes to sessionStorage
+        }
+      }
+    };
+
+    const clearCart = () => {
+      if (confirm('Are you sure you want to clear your cart?')) {
+        cartItems.value = [];
+        saveCart(); // Save changes to sessionStorage
+      }
     };
 
     const formatCurrency = (value) => {
-      return `$${value.toFixed(2)}`;
+      // Format currency as RM
+      return `RM${value.toFixed(2)}`;
     };
+    
+    const proceedToPurchase = () => {
+      if (confirm('Are you sure you want to proceed with your purchase?')) {
+        cartItems.value = [];
+        saveCart();
+        router.push('/my_purchase');
+      }
+    };
+
+    // --- Lifecycle Hook ---
+    // Load the cart from sessionStorage when the component is mounted
+    onMounted(() => {
+      loadCart();
+    });
 
     return {
       cartItems,
@@ -80,7 +96,9 @@ window.Cart = {
       itemCount,
       removeItem,
       updateQuantity,
-      formatCurrency
+      clearCart,
+      formatCurrency,
+      proceedToPurchase // Expose the new function
     };
   },
   template: `
@@ -134,7 +152,7 @@ window.Cart = {
                       <div class="d-flex justify-content-center">
                         <div class="input-group" style="max-width: 120px;">
                           <button class="btn btn-outline-secondary btn-sm" @click="updateQuantity(item.id, item.quantity - 1)">-</button>
-                          <input type="number" class="form-control form-control-sm text-center" v-model.number="item.quantity" @change="updateQuantity(item.id, item.quantity)">
+                          <input type="number" class="form-control form-control-sm text-center" :value="item.quantity" @change="updateQuantity(item.id, parseInt($event.target.value))">
                           <button class="btn btn-outline-secondary btn-sm" @click="updateQuantity(item.id, item.quantity + 1)">+</button>
                         </div>
                       </div>
@@ -154,17 +172,17 @@ window.Cart = {
                 <i class="bi bi-cart-x" style="font-size: 3rem; color: #6c757d;"></i>
                 <h4 class="mt-3">Your cart is empty</h4>
                 <p class="text-muted">Looks like you haven't added any items to your cart yet.</p>
-                <a href="#" class="btn btn-primary mt-3">Continue Shopping</a>
+                <router-link to="/product" class="btn btn-primary mt-3">Continue Shopping</router-link>
               </div>
             </div>
           </div>
 
           <!-- Continue Shopping -->
           <div class="d-flex justify-content-between">
-            <a href="#" class="btn btn-outline-secondary">
+            <router-link to="/product" class="btn btn-outline-secondary">
               <i class="bi bi-arrow-left me-1"></i> Continue Shopping
-            </a>
-            <button class="btn btn-outline-danger" :disabled="cartItems.length === 0">
+            </router-link>
+            <button class="btn btn-outline-danger" @click="clearCart" :disabled="cartItems.length === 0">
               <i class="bi bi-trash me-1"></i> Clear Cart
             </button>
           </div>
@@ -182,7 +200,7 @@ window.Cart = {
               </div>
               <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">Shipping</span>
-                <span>{{ shipping === 0 ? 'FREE' : formatCurrency(shipping) }}</span>
+                <span>{{ shipping > 0 ? formatCurrency(shipping) : 'FREE' }}</span>
               </div>
               <div class="d-flex justify-content-between mb-3">
                 <span class="text-muted">Tax (8%)</span>
@@ -196,15 +214,13 @@ window.Cart = {
                 <span><strong>{{ formatCurrency(total) }}</strong></span>
               </div>
               
-              <button class="btn btn-primary w-100 py-2" :disabled="cartItems.length === 0">
-                Proceed to Checkout
+              <button 
+                class="btn btn-primary w-100 py-2" 
+                :disabled="cartItems.length === 0"
+                @click="proceedToPurchase"
+              >
+                Proceed to Purchase
               </button>
-              
-              <div class="mt-3 text-center">
-                <small class="text-muted">
-                  <i class="bi bi-lock-fill me-1"></i> Secure checkout
-                </small>
-              </div>
             </div>
           </div>
         </div>

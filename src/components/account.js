@@ -150,7 +150,7 @@ window.Account = {
     // Sign out handler
     const signOut = () => {
       sessionStorage.removeItem('user');
-      router.push('/auth');
+      router.push('/authentication');
     };
 
     // Load user data when component mounts

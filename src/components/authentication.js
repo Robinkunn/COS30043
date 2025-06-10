@@ -1,3 +1,5 @@
+// --- START OF FILE authentication.js ---
+
 window.Authentication = {
   setup(props, { root }) {
     const activeTab = Vue.ref('login');
@@ -24,51 +26,92 @@ window.Authentication = {
 
     const router = VueRouter.useRouter();
 
+    // --- MODIFIED handleLogin FUNCTION ---
     const handleLogin = () => {
-      // Simple form validation
       if (!loginForm.value.username || !loginForm.value.password) {
         alert('Please enter both username and password.');
         return;
       }
-
-      const form = new URLSearchParams();
-      form.append('action', 'login');
-      form.append('username', loginForm.value.username);
-      form.append('password', loginForm.value.password);
-
-      fetch('api_user.php', {
+      
+      // NOTE: Your provided code uses `api_user.php` without a folder path.
+      // Adjust this path if your API is inside a subfolder, e.g., 'api/api_user.php'
+      fetch('api_user.php', { 
         method: 'POST',
-        body: form
+        // Sending as x-www-form-urlencoded as per your original code
+        body: new URLSearchParams({
+            username: loginForm.value.username,
+            password: loginForm.value.password
+        })
       })
       .then(res => res.json())
       .then(data => {
         alert(data.message);
         if (data.success) {
-          // Store user details in sessionStorage
-          sessionStorage.setItem('user', JSON.stringify(data.user));
-          router.push('/'); // Use vue-router to navigate to homepage
+          // --- CART LOGIC STARTS HERE ---
+
+          // 1. Store user details in sessionStorage. Using 'loggedInUser' for clarity.
+          sessionStorage.setItem('loggedInUser', JSON.stringify(data.user));
+
+          // 2. Load the cart from the database (if it exists) into sessionStorage.
+          const dbCartString = data.user.cart_items;
+
+          if (dbCartString && dbCartString !== 'null') {
+            // If the user has a saved cart, parse it and set it as the 'cart' in sessionStorage.
+            // This ensures cart.js and product.js will find it.
+            const parsedCart = JSON.parse(dbCartString);
+            sessionStorage.setItem('cart', JSON.stringify(parsedCart));
+          } else {
+            // If the user has no saved cart, or it's empty, ensure any old session cart is cleared.
+            sessionStorage.removeItem('cart');
+          }
+          
+          // --- CART LOGIC ENDS HERE ---
+
+          router.push('/'); // Navigate to homepage
+        }
+      })
+      .catch(error => {
+        console.error("Login error:", error);
+        alert("An error occurred during login. Please try again.");
+      });
+    };
+
+    const handleRegister = () => {
+      // Basic validation
+      if (registerForm.value.password !== registerForm.value.confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+      if (!registerForm.value.agreeTerms) {
+        alert("You must agree to the Terms and Conditions.");
+        return;
+      }
+
+      fetch('api_user.php?action=register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerForm.value)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.message);
+        if (data.success) {
+          activeTab.value = 'login';
+          // Optionally clear the registration form
+          Object.keys(registerForm.value).forEach(key => {
+            if (typeof registerForm.value[key] === 'object' && registerForm.value[key] !== null) {
+              Object.keys(registerForm.value[key]).forEach(subKey => registerForm.value[key][subKey] = '');
+            } else {
+              registerForm.value[key] = (typeof registerForm.value[key] === 'boolean') ? false : '';
+            }
+          });
         }
       });
     };
 
-
-    const handleRegister = () => {
-    fetch('api_user.php?action=register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(registerForm.value)
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert(data.message);
-      if (data.success) activeTab.value = 'login';
-    });
-  };
-
-
     return { activeTab, loginForm, registerForm, handleLogin, handleRegister };
   },
-  template: `
+template: `
     <div class="auth-page" style="
       position: relative;
       min-height: 100vh;
@@ -201,9 +244,6 @@ window.Authentication = {
                   padding: 12px;
                   font-weight: 600;
                 ">Sign In</button>
-                <div class="text-center mt-3">
-                  <a href="#" class="text-muted">Forgot password?</a>
-                </div>
               </form>
             </div>
             

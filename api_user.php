@@ -23,35 +23,6 @@ $key = array_shift($request);
 
 // --- API logic ---
 if ($method === 'POST') {
-    // --- Save Cart Action ---
-    if (isset($_GET['action']) && $_GET['action'] === 'save_cart') {
-        $user_id = $input['user_id'] ?? null;
-        // Get the cart_items as a raw JSON string
-        $cart_items_json = isset($input['cart_items']) ? json_encode($input['cart_items']) : null;
-
-        if (!$user_id) {
-            http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'User ID is required.']);
-            mysqli_close($conn);
-            exit;
-        }
-
-        // Use a prepared statement to prevent SQL injection
-        $stmt = mysqli_prepare($conn, "UPDATE `$table` SET cart_items = ? WHERE id = ?");
-        mysqli_stmt_bind_param($stmt, 'ss', $cart_items_json, $user_id);
-
-        if (mysqli_stmt_execute($stmt)) {
-            echo json_encode(['success' => true, 'message' => 'Cart saved successfully.']);
-        } else {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'Failed to save cart.']);
-        }
-        mysqli_stmt_close($stmt);
-        mysqli_close($conn);
-        exit;
-    }
-
-
     // Registration
     if (isset($_GET['action']) && $_GET['action'] === 'register') {
         // Expect JSON input

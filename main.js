@@ -34,6 +34,8 @@ const routes = [
   { path: '/authentication', component: Authentication },
   { path: '/account', component: Account },
   { path: '/cart', component: Cart },
+  { path: '/cart/edit/:orderId', component: Cart }, // For editing an existing order
+
 ];
 
 const router = createRouter({

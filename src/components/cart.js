@@ -3,14 +3,22 @@ window.Cart = {
   setup() {
     const { ref, computed, onMounted } = Vue;
     const router = VueRouter.useRouter();
+    const route = VueRouter.useRoute();
 
-    // --- Reactive State ---
-    // The cartItems are now loaded from sessionStorage instead of being hardcoded.
+    // --- State ---
     const cartItems = ref([]);
+    const editingOrderId = ref(null);
+
+    // --- Computed Properties for Edit Mode ---
+    const isEditing = computed(() => !!editingOrderId.value);
+    const pageTitle = computed(() => isEditing.value ? `Edit Order #${editingOrderId.value}` : 'Your Shopping Cart');
+    const submitButtonText = computed(() => isEditing.value ? 'Update Order' : 'Proceed to Purchase');
 
     // --- Helper Functions to manage sessionStorage ---
     const saveCart = () => {
-      sessionStorage.setItem('cart', JSON.stringify(cartItems.value));
+      if (!isEditing.value) {
+        sessionStorage.setItem('cart', JSON.stringify(cartItems.value));
+      }
     };
 
     const loadCart = () => {
@@ -19,86 +27,163 @@ window.Cart = {
         cartItems.value = JSON.parse(savedCart);
       }
     };
-    
-    // --- Computed Properties ---
-    const subtotal = computed(() => {
-      return cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0);
-    });
 
-    const shipping = computed(() => {
-      // Set fixed shipping fee to RM5, free if cart is empty.
-      return cartItems.value.length > 0 ? 5.00 : 0;
-    });
-
-    const tax = computed(() => {
-      return subtotal.value * 0.08;
-    });
-
-    const total = computed(() => {
-      return subtotal.value + shipping.value + tax.value;
-    });
-
-    const itemCount = computed(() => {
-      return cartItems.value.reduce((count, item) => count + item.quantity, 0);
-    });
+    // --- Computed Properties for Totals ---
+    const subtotal = computed(() => cartItems.value.reduce((total, item) => total + (item.price * item.quantity), 0));
+    const shipping = computed(() => cartItems.value.length > 0 ? 5.00 : 0);
+    const tax = computed(() => subtotal.value * 0.08);
+    const total = computed(() => subtotal.value + shipping.value + tax.value);
+    const itemCount = computed(() => cartItems.value.reduce((count, item) => count + item.quantity, 0));
 
     // --- Methods ---
     const removeItem = (itemId) => {
       cartItems.value = cartItems.value.filter(item => item.id !== itemId);
-      saveCart(); // Save changes to sessionStorage
+      saveCart();
     };
 
     const updateQuantity = (itemId, newQuantity) => {
       const item = cartItems.value.find(item => item.id === itemId);
       if (item) {
         if (newQuantity < 1) {
-          // If quantity goes below 1, remove the item
           removeItem(itemId);
         } else {
           item.quantity = newQuantity;
-          saveCart(); // Save changes to sessionStorage
+          saveCart();
         }
       }
     };
 
     const clearCart = () => {
+      if (isEditing.value) {
+        if (confirm('Are you sure you want to cancel editing? Your changes will be lost.')) {
+          router.push('/my_purchase');
+        }
+        return;
+      }
       if (confirm('Are you sure you want to clear your cart?')) {
         cartItems.value = [];
-        saveCart(); // Save changes to sessionStorage
+        saveCart();
       }
     };
 
-    const formatCurrency = (value) => {
-      // Format currency as RM
-      return `RM${value.toFixed(2)}`;
-    };
-    
-    const proceedToPurchase = () => {
-      if (confirm('Are you sure you want to proceed with your purchase?')) {
-        cartItems.value = [];
-        saveCart();
-        router.push('/my_purchase');
+    const formatCurrency = (value) => `RM${value.toFixed(2)}`;
+
+    // Handles both creating and updating an order
+    const proceedToPurchase = async () => {
+      if (cartItems.value.length === 0) return;
+      if (isEditing.value) {
+        await updateOrder();
+      } else {
+        await createOrder();
       }
+    };
+
+    const updateOrder = async () => {
+      if (!confirm('Are you sure you want to update this order?')) return;
+
+      const updatePayload = {
+        order_id: editingOrderId.value,
+        items: cartItems.value.map(item => ({
+          product_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+          product_name: item.name,
+          img: item.image
+        })),
+        total_amount: total.value,
+        shipping: shipping.value,
+        tax: tax.value
+      };
+
+      // Update order (main order table)
+      const res = await fetch('api_orders.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatePayload)
+      });
+      const data = await res.json();
+
+      // Update order items (order_items table)
+      const itemsRes = await fetch('api_order_items.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: editingOrderId.value,
+          items: updatePayload.items
+        })
+      });
+      const itemsData = await itemsRes.json();
+
+      if (data.success && itemsData.success) {
+        alert('Order updated successfully!');
+        router.push('/my_purchase');
+      } else {
+        alert((data.message || itemsData.message) || 'Failed to update order.');
+      }
+    };
+
+    const createOrder = async () => {
+      if (!confirm('Are you sure you want to proceed with your purchase?')) return;
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      if (!user || !user.id) {
+        alert('You must be logged in to make a purchase.');
+        return;
+      }
+      const orderPayload = {
+        user_id: user.id,
+        items: cartItems.value.map(item => ({
+          product_id: item.id, product_name: item.name, price: item.price, quantity: item.quantity, img: item.image
+        })),
+        total_amount: total.value, shipping: shipping.value, tax: tax.value
+      };
+      const orderRes = await fetch('api_orders.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderPayload) });
+      const orderData = await orderRes.json();
+      if (!orderData.success) {
+        alert(orderData.message || 'Failed to create order.');
+        return;
+      }
+      const orderId = orderData.order_id;
+      const itemsPayload = { order_id: orderId, items: orderPayload.items };
+      const itemsRes = await fetch('api_order_items.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(itemsPayload) });
+      const itemsData = await itemsRes.json();
+      if (!itemsData.success) {
+        alert(itemsData.message || 'Failed to save order items.');
+        return;
+      }
+      cartItems.value = [];
+      saveCart();
+      alert('Thank you for your purchase! Your order has been placed.');
+      router.push('/my_purchase');
     };
 
     // --- Lifecycle Hook ---
-    // Load the cart from sessionStorage when the component is mounted
     onMounted(() => {
-      loadCart();
+      if (route.params.orderId) {
+        editingOrderId.value = route.params.orderId;
+        const orderToEdit = JSON.parse(sessionStorage.getItem('editingOrder'));
+        if (orderToEdit && orderToEdit.id == editingOrderId.value) {
+          cartItems.value = orderToEdit.products.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price),
+            quantity: parseInt(p.qty, 10),
+            image: p.img,
+            inStock: true
+          }));
+        } else {
+          alert("Error: Could not find the order to edit.");
+          router.push('/my_purchase');
+        }
+        sessionStorage.removeItem('editingOrder');
+      } else {
+        loadCart();
+      }
     });
 
     return {
-      cartItems,
-      subtotal,
-      shipping,
-      tax,
-      total,
-      itemCount,
-      removeItem,
-      updateQuantity,
-      clearCart,
-      formatCurrency,
-      proceedToPurchase // Expose the new function
+      cartItems, subtotal, shipping, tax, total, itemCount,
+      removeItem, updateQuantity, clearCart, formatCurrency, proceedToPurchase,
+      isEditing, pageTitle, submitButtonText
     };
   },
   template: `
@@ -106,11 +191,9 @@ window.Cart = {
       <div class="row">
         <div class="col-lg-8">
           <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold"><i class="bi bi-cart3 me-2"></i>Your Shopping Cart</h2>
+            <h2 class="fw-bold"><i class="bi me-2" :class="isEditing ? 'bi-pencil-square' : 'bi-cart3'"></i>{{ pageTitle }}</h2>
             <span class="text-muted">{{ itemCount }} items</span>
           </div>
-
-          <!-- Cart Items -->
           <div class="card shadow-sm mb-4">
             <div class="card-body p-0">
               <div v-if="cartItems.length > 0">
@@ -120,11 +203,8 @@ window.Cart = {
                   <div class="col-md-2 text-center"><strong>Quantity</strong></div>
                   <div class="col-md-2 text-end"><strong>Total</strong></div>
                 </div>
-
-                <!-- Cart Item -->
                 <div class="p-3 border-bottom" v-for="item in cartItems" :key="item.id">
                   <div class="row align-items-center">
-                    <!-- Product Image & Name -->
                     <div class="col-md-6 mb-3 mb-md-0">
                       <div class="d-flex align-items-center">
                         <img :src="item.image" :alt="item.name" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: cover;">
@@ -140,14 +220,10 @@ window.Cart = {
                         </div>
                       </div>
                     </div>
-
-                    <!-- Price -->
                     <div class="col-md-2 text-center mb-3 mb-md-0">
                       <span class="d-md-none text-muted">Price: </span>
                       {{ formatCurrency(item.price) }}
                     </div>
-
-                    <!-- Quantity -->
                     <div class="col-md-2 mb-3 mb-md-0">
                       <div class="d-flex justify-content-center">
                         <div class="input-group" style="max-width: 120px;">
@@ -157,8 +233,6 @@ window.Cart = {
                         </div>
                       </div>
                     </div>
-
-                    <!-- Total -->
                     <div class="col-md-2 text-end">
                       <span class="d-md-none text-muted">Total: </span>
                       <strong>{{ formatCurrency(item.price * item.quantity) }}</strong>
@@ -166,8 +240,6 @@ window.Cart = {
                   </div>
                 </div>
               </div>
-
-              <!-- Empty Cart -->
               <div v-else class="text-center py-5">
                 <i class="bi bi-cart-x" style="font-size: 3rem; color: #6c757d;"></i>
                 <h4 class="mt-3">Your cart is empty</h4>
@@ -176,24 +248,20 @@ window.Cart = {
               </div>
             </div>
           </div>
-
-          <!-- Continue Shopping -->
           <div class="d-flex justify-content-between">
-            <router-link to="/product" class="btn btn-outline-secondary">
+            <router-link v-if="!isEditing" to="/product" class="btn btn-outline-secondary">
               <i class="bi bi-arrow-left me-1"></i> Continue Shopping
             </router-link>
-            <button class="btn btn-outline-danger" @click="clearCart" :disabled="cartItems.length === 0">
-              <i class="bi bi-trash me-1"></i> Clear Cart
+            <button class="btn" :class="isEditing ? 'btn-outline-warning' : 'btn-outline-danger'" @click="clearCart" :disabled="cartItems.length === 0">
+              <i class="bi me-1" :class="isEditing ? 'bi-x-circle' : 'bi-trash'"></i> 
+              {{ isEditing ? 'Cancel Edit' : 'Clear Cart' }}
             </button>
           </div>
         </div>
-
-        <!-- Order Summary -->
         <div class="col-lg-4 mt-4 mt-lg-0">
           <div class="card shadow-sm">
             <div class="card-body">
               <h5 class="card-title mb-4">Order Summary</h5>
-              
               <div class="d-flex justify-content-between mb-2">
                 <span class="text-muted">Subtotal</span>
                 <span>{{ formatCurrency(subtotal) }}</span>
@@ -206,20 +274,18 @@ window.Cart = {
                 <span class="text-muted">Tax (8%)</span>
                 <span>{{ formatCurrency(tax) }}</span>
               </div>
-              
               <hr>
-              
               <div class="d-flex justify-content-between mb-3">
                 <span><strong>Total</strong></span>
                 <span><strong>{{ formatCurrency(total) }}</strong></span>
               </div>
-              
               <button 
-                class="btn btn-primary w-100 py-2" 
+                class="btn w-100 py-2"
+                :class="isEditing ? 'btn-success' : 'btn-primary'"
                 :disabled="cartItems.length === 0"
                 @click="proceedToPurchase"
               >
-                Proceed to Purchase
+                {{ submitButtonText }}
               </button>
             </div>
           </div>

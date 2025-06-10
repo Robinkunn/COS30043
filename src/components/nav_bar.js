@@ -6,7 +6,7 @@ window.NavBar = {
     // --- Reactive Data ---
     const user = ref({
       name: '',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg' // Default avatar
+      avatar: 'src/images/che.jpg' // Default avatar
     });
 
     const orderCount = ref(3);
@@ -20,7 +20,7 @@ window.NavBar = {
           const userData = JSON.parse(storedUser);
           user.value = {
             name: userData.name || userData.username || 'User',
-            avatar: userData.avatar || 'https://randomuser.me/api/portraits/women/44.jpg'
+            avatar: userData.avatar || 'src/images/che.jpg'
           };
         } catch (error) {
           console.error('Error parsing user data:', error);

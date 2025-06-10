@@ -43,7 +43,7 @@ window.Account = {
           user.username = userData.username || '';
           user.email = userData.email || '';
           user.phone = userData.phone || '';
-          user.avatar = userData.avatar || 'https://randomuser.me/api/portraits/women/44.jpg';
+          user.avatar = userData.avatar || 'src/images/che.jpg';
 
           // --- Map address fields directly if not nested ---
           if (userData.address && typeof userData.address === 'object') {

@@ -36,7 +36,7 @@ window.Authentication = {
       form.append('username', loginForm.value.username);
       form.append('password', loginForm.value.password);
 
-      fetch('api_user.php', {
+      fetch('https://pizzahat.wuaze.com/api_user.php', {
         method: 'POST',
         body: form
       })
@@ -55,7 +55,7 @@ window.Authentication = {
 
 
     const handleRegister = () => {
-    fetch('api_user.php?action=register', {
+    fetch('https://pizzahat.wuaze.com/api_user.php?action=register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(registerForm.value)

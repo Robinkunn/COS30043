@@ -40,7 +40,7 @@ window.Authentication = {
         method: 'POST',
         body: form
       })
-      .then(res => res.json())
+      .then(res => res.text())
       .then(data => {
         alert(data.message);
         if (data.success) {
@@ -60,7 +60,7 @@ window.Authentication = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(registerForm.value)
     })
-    .then(res => res.json())
+    .then(res => res.text())
     .then(data => {
       alert(data.message);
       if (data.success) activeTab.value = 'login';

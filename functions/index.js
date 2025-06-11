@@ -1,5 +1,5 @@
 const functions = require("firebase-functions");
-const axios = require("axios");aaa
+const axios = require("axios");
 
 exports.proxyAPI = functions.https.onRequest(async (req, res) => {
   // Set CORS headers for the Firebase Function response

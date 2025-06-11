@@ -16,4 +16,4 @@ exports.proxyAPI = functions.https.onRequest(async (req, res) => {
     res.status(500).send({error: "Proxy request failed"});
   }
 });
-
+// This blank line at the end is required

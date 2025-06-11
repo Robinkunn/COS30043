@@ -36,7 +36,7 @@ window.Authentication = {
       form.append('username', loginForm.value.username);
       form.append('password', loginForm.value.password);
 
-      fetch('https://pizzahat.wuaze.com/api_user.php', {
+      fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI', {
         method: 'POST',
         body: form
       })
@@ -55,7 +55,7 @@ window.Authentication = {
 
 
     const handleRegister = () => {
-    fetch('https://pizzahat.wuaze.com/api_user.php?action=register', {
+    fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI?action=register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(registerForm.value)

@@ -3,7 +3,9 @@ header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
 
-$conn = mysqli_connect('localhost', 'root', '', 'cos30043');
+// $conn = mysqli_connect('localhost', 'root', '', 'cos30043');
+$conn = mysqli_connect('sql102.infinityfree.com', 'if0_39191103', 'Rctz20041', 'if0_39191103_pizzahatdb');
+
 mysqli_set_charset($conn, 'utf8');
 
 $table = "order_items";

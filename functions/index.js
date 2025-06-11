@@ -36,6 +36,6 @@ exports.proxyAPI = functions.https.onRequest(async (req, res) => {
     res.status(response.status).send(response.data);
   } catch (error) {
     console.error("Proxy error:", error);
-    res.status(500).send({error: "Proxy request failed"});aa
+    res.status(500).send({error: "Proxy request failed"});
   }
 });

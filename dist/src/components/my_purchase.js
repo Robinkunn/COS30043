@@ -23,7 +23,8 @@ window.MyPurchase = {
         return;
       }
 
-      const ordersRes = await fetch(`api_orders.php?user_id=${user.id}`);
+      // const ordersRes = await fetch(`api_orders.php?user_id=${user.id}`);
+      const ordersRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders?user_id=${user.id}`);
       const ordersData = await ordersRes.json();
       if (!ordersData.success || !Array.isArray(ordersData.orders)) {
         allOrders.value = [];
@@ -33,7 +34,8 @@ window.MyPurchase = {
 
       const ordersWithItems = await Promise.all(
         ordersData.orders.map(async (order) => {
-          const itemsRes = await fetch(`api_order_items.php?order_id=${order.id}`);
+          // const itemsRes = await fetch(`api_order_items.php?order_id=${order.id}`);
+          const itemsRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items?order_id=${order.id}`);
           const itemsData = await itemsRes.json();
           return {
             ...order,
@@ -55,7 +57,8 @@ window.MyPurchase = {
     
     const deleteOrderItem = async (itemId, orderId) => {
       try {
-        const response = await fetch('api_order_items.php', {
+        // const response = await fetch('api_order_items.php', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -75,7 +78,8 @@ window.MyPurchase = {
 
     const deleteOrder = async (orderId) => {
       try {
-        const response = await fetch('api_orders.php', {
+        // const response = await fetch('api_orders.php', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -135,7 +139,8 @@ window.MyPurchase = {
         })).filter(item => editedItems.value[item.id] > 0); // Remove items with 0 quantity
         
         // Call API to update order items
-        const response = await fetch('api_order_items.php', {
+        // const response = await fetch('api_order_items.php', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

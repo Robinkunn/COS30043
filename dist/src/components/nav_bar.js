@@ -44,7 +44,8 @@ window.NavBar = {
           return;
         }
         // Always fetch the latest cart from the server
-        const res = await fetch(`api_carts.php?user_id=${userObj.id}`);
+        // const res = await fetch(`api_carts.php?user_id=${userObj.id}`);
+        const res = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts?user_id=${userObj.id}`);
         const data = await res.json();
         if (data.success && data.cart && Array.isArray(data.cart.items)) {
           cartItemCount.value = data.cart.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);

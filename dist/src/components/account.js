@@ -106,7 +106,8 @@ window.Account = {
           }
         };
 
-        const response = await fetch('api_user.php?action=update_profile', {
+        // const response = await fetch('api_user.php?action=update_profile', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI?action=update_profile', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json'
@@ -168,7 +169,8 @@ window.Account = {
       isChangingPassword.value = true;
 
       try {
-        const response = await fetch('api_user.php?action=change_password', {
+        // const response = await fetch('api_user.php?action=change_password', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI?action=change_password', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

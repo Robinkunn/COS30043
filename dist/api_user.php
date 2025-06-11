@@ -1,14 +1,16 @@
 <?php
-header("Access-Control-Allow-Origin: https://pizzahat.web.app"); 
+// Handle CORS & preflight (OPTIONS) requests first
+header("Access-Control-Allow-Origin: https://pizzahat.web.app");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-// Reference:
-// https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
-
-// Use this API for demonstration purposes only
+// Immediately exit for OPTIONS requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 
 // get the HTTP method, path and body of the request

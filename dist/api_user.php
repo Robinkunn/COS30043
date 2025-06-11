@@ -19,8 +19,8 @@ $request = explode('/', trim($_SERVER['PATH_INFO'] ?? '','/'));
 $input = json_decode(file_get_contents('php://input'),true);  // json string to associative array(true)
 
 // connect to the mysql database, provide the appropriate credentials
-// $conn = mysqli_connect('localhost', 'root', '', 'cos30043');
-$conn = mysqli_connect('sql102.infinityfree.com', 'if0_39191103', 'Rctz20041', 'if0_39191103_pizzahatdb');
+$conn = mysqli_connect('localhost', 'root', '', 'cos30043');
+// $conn = mysqli_connect('sql102.infinityfree.com', 'if0_39191103', 'Rctz20041', 'if0_39191103_pizzahatdb');
 
 mysqli_set_charset($conn,'utf8');
 

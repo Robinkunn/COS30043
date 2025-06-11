@@ -1,4 +1,9 @@
 <?php
+header("Access-Control-Allow-Origin: *"); // Or specify your Firebase domain
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header('Content-Type: application/json');
+
 // Reference:
 // https://www.leaseweb.com/labs/2015/10/creating-a-simple-rest-api-in-php/
 

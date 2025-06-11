@@ -57,13 +57,13 @@ window.MyPurchase = {
     
     const deleteOrderItem = async (itemId, orderId) => {
       try {
-        // const response = await fetch('api_order_items.php', {
+        // Use POST with _method: 'DELETE' and JSON body (same as cart.js)
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
-          method: 'DELETE',
+          method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
           },
-          body: `id=${itemId}&order_id=${orderId}`
+          body: JSON.stringify({ id: itemId, order_id: orderId, _method: 'DELETE' })
         });
         const data = await response.json();
         if (data.success) {
@@ -78,13 +78,13 @@ window.MyPurchase = {
 
     const deleteOrder = async (orderId) => {
       try {
-        // const response = await fetch('api_orders.php', {
+        // Use POST with _method: 'DELETE'
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', {
-          method: 'DELETE',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ order_id: orderId })
+          body: JSON.stringify({ order_id: orderId, _method: 'DELETE' })
         });
         const data = await response.json();
         if (data.success) {
@@ -136,24 +136,24 @@ window.MyPurchase = {
           price: product.price,
           quantity: editedItems.value[product.id] || product.qty,
           img: product.img
-        })).filter(item => editedItems.value[item.id] > 0); // Remove items with 0 quantity
-        
-        // Call API to update order items
-        // const response = await fetch('api_order_items.php', {
+        })).filter(item => editedItems.value[item.id] > 0);
+
+        // Use POST with _method: 'UPDATE'
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             order_id: order.id,
-            items: updatedItems
+            items: updatedItems,
+            _method: 'UPDATE'
           })
         });
-        
+
         const data = await response.json();
         if (data.success) {
-          await fetchOrders(); // Refresh the order list
+          await fetchOrders();
           editingOrderId.value = null;
           editedItems.value = {};
         } else {
@@ -317,7 +317,10 @@ window.MyPurchase = {
                       <i class="bi bi-calendar me-1"></i>
                       Placed on: {{ formatDate(order.created_at) }}
                     </p>
-                    <p class="mb-0 fw-bold"><i class="bi bi-currency-dollar me-1"></i> Total: {{ formatCurrency(order.total_amount) }}</p>
+                    <p class="mb-0 fw-bold">
+                      <i class="bi bi-currency-dollar me-1"></i>
+                      Total: {{ formatCurrency(order.products.reduce((sum, item) => sum + (item.price * item.qty), 0)) }}
+                    </p>
                   </div>
                 </div>
                 <hr>
@@ -340,7 +343,7 @@ window.MyPurchase = {
                               @change="updateItemQuantity(product.id, $event.target.value)"
                               :value="editedItems[product.id] || product.qty" min="1">
                             <button class="btn btn-outline-secondary" type="button" 
-                              @click="updateItemQuantity(product.id, (editedItems[product.id] || product.qty) + 1)">
+                              @click="updateItemQuantity(product.id, parseInt(editedItems[product.id] || product.qty) + 1)">
                               +
                             </button>
                           </div>

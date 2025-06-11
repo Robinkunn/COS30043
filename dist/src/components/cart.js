@@ -75,16 +75,15 @@ window.Cart = {
     const removeItem = async (cartItemId) => {
       if (!confirm('Are you sure you want to remove this item?')) return;
       try {
-        // const response = await fetch('api_cart_items.php', {
+        // Use POST with _method: 'DELETE'
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
-          method: 'DELETE',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: cartItemId })
+          body: JSON.stringify({ id: cartItemId, _method: 'DELETE' })
         });
         const data = await response.json();
         if (data.success) {
-          await fetchCart(); // Refresh cart from server
-          // Remove from selected items if it was there
+          await fetchCart();
           selectedItems.value = selectedItems.value.filter(id => id !== cartItemId);
         } else {
           alert(`Failed to remove item: ${data.message}`);
@@ -100,20 +99,20 @@ window.Cart = {
       if (isNaN(quantity)) return;
 
       if (quantity < 1) {
-        removeItem(cartItemId);
+        await removeItem(cartItemId);
         return;
       }
 
       try {
-        // const response = await fetch('api_cart_items.php', {
+        // Use POST with _method: 'UPDATE'
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
-          method: 'PUT',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: cartItemId, quantity: quantity })
+          body: JSON.stringify({ id: cartItemId, quantity: quantity, _method: 'UPDATE' })
         });
         const data = await response.json();
         if (data.success) {
-          await fetchCart(); // Refresh cart from server
+          await fetchCart();
         } else {
           alert(`Failed to update quantity: ${data.message}`);
         }
@@ -139,11 +138,10 @@ window.Cart = {
       if (!user || !user.id) return;
 
       try {
-        // const response = await fetch('api_carts.php', {
         const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts', {
-          method: 'DELETE',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: user.id })
+          body: JSON.stringify({ user_id: user.id, _method: 'DELETE' })
         });
         const data = await response.json();
         if (data.success) {
@@ -220,16 +218,14 @@ window.Cart = {
       
       // Remove only the purchased items from the cart
       try {
-        // Delete all selected items from cart
-        const deletePromises = selectedItems.value.map(cartItemId => 
-          // fetch('api_cart_items.php', {
+        // Delete all selected items from cart using POST with _method: 'DELETE'
+        const deletePromises = selectedItems.value.map(cartItemId =>
           fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
-            method: 'DELETE',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: cartItemId })
+            body: JSON.stringify({ id: cartItemId, _method: 'DELETE' })
           })
         );
-        
         await Promise.all(deletePromises);
         await fetchCart(); // Refresh cart from server
         selectedItems.value = []; // Clear selection

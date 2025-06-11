@@ -21,8 +21,69 @@ function sendError($message, $code = 400) {
     exit;
 }
 
-if ($method === 'POST') {
-    // Add order items
+if ($method === 'POST' && isset($input['_method']) && $input['_method'] === 'UPDATE') {
+    // Update order items logic here (was PUT)
+    $order_id = intval($input['order_id'] ?? 0);
+    $items = $input['items'] ?? [];
+
+    if (!$order_id || !is_array($items)) {
+        sendError('Invalid order_id or items.');
+    }
+
+    // Delete existing items for this order
+    mysqli_query($conn, "DELETE FROM `$table` WHERE order_id = $order_id");
+
+    $success = true;
+    foreach ($items as $item) {
+        $product_id = mysqli_real_escape_string($conn, $item['product_id'] ?? '');
+        $product_name = mysqli_real_escape_string($conn, $item['product_name'] ?? '');
+        $price = floatval($item['price'] ?? 0);
+        $quantity = intval($item['quantity'] ?? 0);
+        $img = mysqli_real_escape_string($conn, $item['img'] ?? '');
+
+        if (!$product_id || !$product_name || $price <= 0 || $quantity <= 0) {
+            $success = false;
+            break;
+        }
+
+        $sql = "INSERT INTO `$table` (order_id, product_id, product_name, price, quantity, img)
+                VALUES ($order_id, '$product_id', '$product_name', $price, $quantity, '$img')";
+        if (!mysqli_query($conn, $sql)) {
+            $success = false;
+            break;
+        }
+    }
+
+    echo json_encode(['success' => $success, 'message' => $success ? 'Order items updated.' : 'Failed to update items.']);
+    mysqli_close($conn);
+    exit;
+} elseif ($method === 'POST' && isset($input['_method']) && $input['_method'] === 'DELETE') {
+    // Delete a specific order item by its ID
+    $id = intval($input['id'] ?? 0);
+    $order_id = intval($input['order_id'] ?? 0);
+
+    if (!$id) {
+        sendError('Item ID is required.');
+    }
+
+    // Optionally, verify the item belongs to the specified order (if order_id provided)
+    if ($order_id) {
+        $check = mysqli_query($conn, "SELECT id FROM `$table` WHERE id = $id AND order_id = $order_id");
+        if (mysqli_num_rows($check) === 0) {
+            sendError('Item not found in specified order.', 404);
+        }
+    }
+
+    $sql = "DELETE FROM `$table` WHERE id = $id";
+    if (mysqli_query($conn, $sql)) {
+        echo json_encode(['success' => true, 'message' => 'Order item deleted.']);
+    } else {
+        sendError('Failed to delete order item.', 500);
+    }
+    mysqli_close($conn);
+    exit;
+} elseif ($method === 'POST') {
+    // Add order items logic here
     $order_id = intval($input['order_id'] ?? 0);
     $items = $input['items'] ?? [];
 
@@ -71,72 +132,6 @@ if ($method === 'GET') {
     }
 
     echo json_encode(['success' => true, 'items' => $items]);
-    mysqli_close($conn);
-    exit;
-}
-
-if ($method === 'PUT') {
-    // Update all items for an order (replace all items)
-    $order_id = intval($input['order_id'] ?? 0);
-    $items = $input['items'] ?? [];
-
-    if (!$order_id || !is_array($items)) {
-        sendError('Invalid order_id or items.');
-    }
-
-    // Delete existing items for this order
-    mysqli_query($conn, "DELETE FROM `$table` WHERE order_id = $order_id");
-
-    $success = true;
-    foreach ($items as $item) {
-        $product_id = mysqli_real_escape_string($conn, $item['product_id'] ?? '');
-        $product_name = mysqli_real_escape_string($conn, $item['product_name'] ?? '');
-        $price = floatval($item['price'] ?? 0);
-        $quantity = intval($item['quantity'] ?? 0);
-        $img = mysqli_real_escape_string($conn, $item['img'] ?? '');
-
-        if (!$product_id || !$product_name || $price <= 0 || $quantity <= 0) {
-            $success = false;
-            break;
-        }
-
-        $sql = "INSERT INTO `$table` (order_id, product_id, product_name, price, quantity, img)
-                VALUES ($order_id, '$product_id', '$product_name', $price, $quantity, '$img')";
-        if (!mysqli_query($conn, $sql)) {
-            $success = false;
-            break;
-        }
-    }
-
-    echo json_encode(['success' => $success, 'message' => $success ? 'Order items updated.' : 'Failed to update items.']);
-    mysqli_close($conn);
-    exit;
-}
-
-if ($method === 'DELETE') {
-    // Delete an order item
-    parse_str(file_get_contents("php://input"), $input);
-    $id = intval($input['id'] ?? 0);
-    $order_id = intval($input['order_id'] ?? 0);
-
-    if (!$id) {
-        sendError('Item ID is required.');
-    }
-
-    // Verify the item belongs to the specified order (if order_id provided)
-    if ($order_id) {
-        $check = mysqli_query($conn, "SELECT id FROM `$table` WHERE id = $id AND order_id = $order_id");
-        if (mysqli_num_rows($check) === 0) {
-            sendError('Item not found in specified order.', 404);
-        }
-    }
-
-    $sql = "DELETE FROM `$table` WHERE id = $id";
-    if (mysqli_query($conn, $sql)) {
-        echo json_encode(['success' => true, 'message' => 'Order item deleted.']);
-    } else {
-        sendError('Failed to delete order item.', 500);
-    }
     mysqli_close($conn);
     exit;
 }

@@ -6,7 +6,17 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'];
-$input = json_decode(file_get_contents('php://input'), true);
+
+function getInput() {
+    $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
+    if (stripos($contentType, 'application/json') !== false) {
+        return json_decode(file_get_contents('php://input'), true);
+    } else {
+        // For form data or x-www-form-urlencoded
+        return $_POST ?: [];
+    }
+}
+$input = getInput();
 
 // Database Connection
 // $conn = mysqli_connect('localhost', 'root', '', 'cos30043');
@@ -81,9 +91,10 @@ if ($method === 'GET') {
     exit;
 }
 
-if ($method === 'DELETE') {
+if (
+    ($method === 'POST' && isset($input['_method']) && $input['_method'] === 'DELETE')
+) {
     // Clear a user's cart by deleting the cart record.
-    // The `ON DELETE CASCADE` constraint on the cart_items table will automatically remove all associated items.
     $user_id = mysqli_real_escape_string($conn, $input['user_id'] ?? '');
 
     if (!$user_id) {
@@ -96,7 +107,6 @@ if ($method === 'DELETE') {
         if (mysqli_affected_rows($conn) > 0) {
             echo json_encode(['success' => true, 'message' => 'Cart and all its items cleared successfully.']);
         } else {
-            // This is not an error; it just means the user had no cart to clear.
             echo json_encode(['success' => true, 'message' => 'No active cart found for the user to clear.']);
         }
     } else {

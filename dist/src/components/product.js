@@ -103,45 +103,75 @@ window.Product = {
       currentPage.value = 1; // Reset to first page when changing tabs
     };
 
-    const addToCart = (item) => {
-      // Check if user is logged in
+    const addToCart = async (item) => {
+      // 1. Check if user is logged in
       const user = JSON.parse(sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser') || 'null');
       if (!user || !user.id) {
         if (confirm('You must login first to add items to your cart.\n\nGo to login page?')) {
-          // Use Vue Router to navigate
           window.location.hash = '#/authentication';
-          // Or, if you have access to the router instance:
-          // router.push('/authentication');
         }
         return;
       }
-
-      // Get the current cart from sessionStorage, or create an empty array if it doesn't exist
-      let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
-
-      // Check if the item is already in the cart
-      const existingItem = cart.find(cartItem => cartItem.id === item.id);
-
-      if (existingItem) {
-        // If it exists, just increase the quantity
-        existingItem.quantity++;
-      } else {
-        // If it's a new item, add it to the cart with quantity 1
-        cart.push({
-          id: item.id,
-          name: item.name,
+    
+      try {
+        // 2. Get or Create User's Cart to get its ID.
+        // First, try to get the cart from sessionStorage to reduce API calls.
+        let cart = JSON.parse(sessionStorage.getItem('cart'));
+    
+        // If cart is not in session or doesn't belong to the current user, fetch it from the API.
+        if (!cart || !cart.id || cart.user_id !== user.id) {
+          const cartResponse = await fetch(`api_carts.php?user_id=${user.id}`);
+          const cartData = await cartResponse.json();
+          
+          if (cartData.success) {
+            cart = cartData.cart;
+            // Store the full cart object (which includes items) in session storage.
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+          } else {
+            alert(`Error: Could not access your cart. ${cartData.message || ''}`);
+            console.error('Failed to get or create cart:', cartData.message);
+            return;
+          }
+        }
+        
+        // At this point, we must have a valid cart.id.
+        const cartId = cart.id;
+    
+        // 3. Prepare item data for the API.
+        const itemData = {
+          cart_id: cartId,
+          product_id: item.id,
+          product_name: item.name,
           price: item.price,
-          quantity: 1,
-          image: item.img,
-          inStock: true
+          img: item.img,
+          quantity: 1 // The API will handle incrementing the quantity if the item already exists.
+        };
+    
+        // 4. Call the API to add the item to the cart.
+        const addItemResponse = await fetch('api_cart_items.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(itemData)
         });
+    
+        const addItemResult = await addItemResponse.json();
+    
+        // 5. Handle the result from the API.
+        if (addItemResult.success) {
+          alert(`${item.name} has been added to your cart.`);
+          // Invalidate the session storage cart data so it gets refetched with updated items next time.
+          sessionStorage.removeItem('cart'); 
+        } else {
+          alert(`Failed to add item to cart: ${addItemResult.message}`);
+          console.error('API Error adding item:', addItemResult.message);
+        }
+    
+      } catch (error) {
+        console.error('An error occurred while adding to cart:', error);
+        alert('An unexpected error occurred. Please check your connection and try again.');
       }
-
-      // Save the updated cart back to sessionStorage
-      sessionStorage.setItem('cart', JSON.stringify(cart));
-
-      // Notify the user
-      alert(`${item.name} has been added to your cart.`);
     };
 
     const changePage = (page) => {

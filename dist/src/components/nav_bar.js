@@ -1,6 +1,6 @@
 window.NavBar = {
   setup() {
-    const { ref, onMounted, watch } = Vue;
+    const { ref, onMounted } = Vue;
     const router = VueRouter.useRouter();
 
     // --- Reactive Data ---
@@ -9,7 +9,6 @@ window.NavBar = {
       avatar: 'src/images/che.jpg' // Default avatar
     });
 
-    const orderCount = ref(3);
     const cartItemCount = ref(0);
 
     // Function to load user data from sessionStorage
@@ -24,26 +23,35 @@ window.NavBar = {
           };
         } catch (error) {
           console.error('Error parsing user data:', error);
-          // Fallback to empty name if parsing fails
           user.value.name = '';
         }
       } else {
-        // No user logged in, clear the name
         user.value.name = '';
       }
     };
 
-    // Function to load cart count from sessionStorage
-    const loadCartCount = () => {
-      const cart = sessionStorage.getItem('cart');
-      if (cart) {
-        try {
-          const cartArr = JSON.parse(cart);
-          cartItemCount.value = cartArr.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        } catch (e) {
+    // Function to load cart count by fetching the cart API and summing up the quantities
+    const loadCartCount = async () => {
+      const userData = sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser');
+      if (!userData) {
+        cartItemCount.value = 0;
+        return;
+      }
+      try {
+        const userObj = JSON.parse(userData);
+        if (!userObj || !userObj.id) {
+          cartItemCount.value = 0;
+          return;
+        }
+        // Always fetch the latest cart from the server
+        const res = await fetch(`api_carts.php?user_id=${userObj.id}`);
+        const data = await res.json();
+        if (data.success && data.cart && Array.isArray(data.cart.items)) {
+          cartItemCount.value = data.cart.items.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+        } else {
           cartItemCount.value = 0;
         }
-      } else {
+      } catch (e) {
         cartItemCount.value = 0;
       }
     };
@@ -61,6 +69,9 @@ window.NavBar = {
 
       // Optionally, update cart count when navigating (for SPA)
       window.addEventListener('focus', loadCartCount);
+
+      // Optionally, poll cart count every 30s to keep it fresh
+      setInterval(loadCartCount, 30000);
 
       // Initialize Bootstrap tooltips
       const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -87,16 +98,14 @@ window.NavBar = {
       });
     }
 
-    // Function to handle logout (you might want to add this)
     const handleLogout = () => {
       sessionStorage.removeItem('user');
-      loadUserData(); // Refresh user data
-      router.push('/auth'); // Redirect to login page
+      loadUserData();
+      router.push('/auth');
     };
 
     return {
       user,
-      orderCount,
       cartItemCount,
       goToOurStory,
       goToFooter,

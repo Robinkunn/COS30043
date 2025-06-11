@@ -47,36 +47,73 @@ window.HomePage = {
       return stars.join('');
     };
 
-    // Add to Cart logic (copied from product.js)
-    const addToCart = (item) => {
-      // Check if user is logged in
+    // Updated Add to Cart logic (same as product.js)
+    const addToCart = async (item) => {
+      // 1. Check if user is logged in
       const user = JSON.parse(sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser') || 'null');
       if (!user || !user.id) {
         if (confirm('You must login first to add items to your cart.\n\nGo to login page?')) {
           window.location.hash = '#/authentication';
-          // If you use Vue Router instance, you can use: router.push('/authentication');
         }
         return;
       }
 
-      let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
-      const existingItem = cart.find(cartItem => cartItem.id === item.id);
+      try {
+        // 2. Get or Create User's Cart to get its ID.
+        let cart = JSON.parse(sessionStorage.getItem('cart'));
 
-      if (existingItem) {
-        existingItem.quantity++;
-      } else {
-        cart.push({
-          id: item.id,
-          name: item.name,
+        // If cart is not in session or doesn't belong to the current user, fetch it from the API.
+        if (!cart || !cart.id || cart.user_id !== user.id) {
+          const cartResponse = await fetch(`api_carts.php?user_id=${user.id}`);
+          const cartData = await cartResponse.json();
+          
+          if (cartData.success) {
+            cart = cartData.cart;
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+          } else {
+            alert(`Error: Could not access your cart. ${cartData.message || ''}`);
+            console.error('Failed to get or create cart:', cartData.message);
+            return;
+          }
+        }
+        
+        // At this point, we must have a valid cart.id.
+        const cartId = cart.id;
+
+        // 3. Prepare item data for the API.
+        const itemData = {
+          cart_id: cartId,
+          product_id: item.id,
+          product_name: item.name,
           price: item.price,
-          quantity: 1,
-          image: item.img,
-          inStock: true
-        });
-      }
+          img: item.img,
+          quantity: 1 // The API will handle incrementing the quantity if the item already exists.
+        };
 
-      sessionStorage.setItem('cart', JSON.stringify(cart));
-      alert(`${item.name} has been added to your cart.`);
+        // 4. Call the API to add the item to the cart.
+        const addItemResponse = await fetch('api_cart_items.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(itemData)
+        });
+
+        const addItemResult = await addItemResponse.json();
+
+        // 5. Handle the result from the API.
+        if (addItemResult.success) {
+          alert(`${item.name} has been added to your cart.`);
+          sessionStorage.removeItem('cart'); // Invalidate so it gets refetched next time
+        } else {
+          alert(`Failed to add item to cart: ${addItemResult.message}`);
+          console.error('API Error adding item:', addItemResult.message);
+        }
+
+      } catch (error) {
+        console.error('An error occurred while adding to cart:', error);
+        alert('An unexpected error occurred. Please check your connection and try again.');
+      }
     };
 
     return { pizzas, testimonials, renderStars, addToCart };

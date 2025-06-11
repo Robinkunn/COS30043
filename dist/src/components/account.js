@@ -8,7 +8,7 @@ window.Account = {
       username: '',
       email: '',
       phone: '',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg', // Default avatar
+      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
       address: {
         street: '',
         city: '',
@@ -27,9 +27,19 @@ window.Account = {
       }
     });
 
+    // Password change form
+    const passwordForm = reactive({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+
     const isLoading = ref(true);
     const errorMessage = ref('');
     const isSaving = ref(false);
+    const isChangingPassword = ref(false);
+    const passwordError = ref('');
+    const passwordSuccess = ref('');
 
     // Load user data from sessionStorage
     const loadUserData = () => {
@@ -38,14 +48,12 @@ window.Account = {
         try {
           const userData = JSON.parse(storedUser);
 
-          // Map the stored user data to our reactive user object
           user.fullname = userData.name || userData.fullname || '';
           user.username = userData.username || '';
           user.email = userData.email || '';
           user.phone = userData.phone || '';
           user.avatar = userData.avatar || 'src/images/che.jpg';
 
-          // --- Map address fields directly if not nested ---
           if (userData.address && typeof userData.address === 'object') {
             user.address.street = userData.address.street || '';
             user.address.city = userData.address.city || '';
@@ -58,7 +66,6 @@ window.Account = {
             user.address.zip = userData.zip || '';
           }
 
-          // Handle stats (you might want to fetch these from the API later)
           if (userData.stats) {
             user.stats.orders = userData.stats.orders || 0;
             user.stats.reviews = userData.stats.reviews || 0;
@@ -72,7 +79,6 @@ window.Account = {
           isLoading.value = false;
         }
       } else {
-        // No user data found, redirect to login
         router.push('/authentication');
       }
     };
@@ -87,7 +93,6 @@ window.Account = {
       isSaving.value = true;
       
       try {
-        // Prepare data for API call
         const updateData = {
           username: user.username,
           name: user.fullname,
@@ -101,7 +106,6 @@ window.Account = {
           }
         };
 
-        // Make API call to update profile
         const response = await fetch('api_user.php?action=update_profile', {
           method: 'POST',
           headers: { 
@@ -113,14 +117,12 @@ window.Account = {
         const result = await response.json();
 
         if (result.success) {
-          // Update session storage with new data
           const currentUser = JSON.parse(sessionStorage.getItem('user') || '{}');
           const updatedUser = {
             ...currentUser,
             name: user.fullname,
             email: user.email,
             phone: user.phone,
-            // Store address fields both nested and flat for compatibility
             address: {
               street: user.address.street,
               city: user.address.city,
@@ -147,24 +149,78 @@ window.Account = {
       }
     };
 
+    // Change password handler
+    const changePassword = async () => {
+      passwordError.value = '';
+      passwordSuccess.value = '';
+
+      // Validate form
+      if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+        passwordError.value = 'All fields are required';
+        return;
+      }
+
+      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        passwordError.value = 'New passwords do not match';
+        return;
+      }
+
+      isChangingPassword.value = true;
+
+      try {
+        const response = await fetch('api_user.php?action=change_password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: user.username,
+            currentPassword: passwordForm.currentPassword,
+            newPassword: passwordForm.newPassword
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          passwordSuccess.value = 'Password changed successfully!';
+          // Clear form
+          passwordForm.currentPassword = '';
+          passwordForm.newPassword = '';
+          passwordForm.confirmPassword = '';
+        } else {
+          passwordError.value = result.message || 'Failed to change password';
+        }
+      } catch (error) {
+        console.error('Error changing password:', error);
+        passwordError.value = 'Network error. Please try again.';
+      } finally {
+        isChangingPassword.value = false;
+      }
+    };
+
     // Sign out handler
     const signOut = () => {
       sessionStorage.removeItem('user');
       router.push('/authentication');
     };
 
-    // Load user data when component mounts
     onMounted(() => {
       loadUserData();
     });
     
     return { 
       user, 
+      passwordForm,
       isLoading, 
       errorMessage, 
       isSaving,
+      isChangingPassword,
+      passwordError,
+      passwordSuccess,
       signOut, 
       saveUserData,
+      changePassword,
       loadUserData
     };
   },
@@ -262,10 +318,42 @@ window.Account = {
                 </div>
               </div>
             </div>
+
+            <!-- Password Change Card -->
+            <div class="col-md-6 mb-4">
+              <div class="card shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0">
+                  <h5 class="mb-0">Change Password</h5>
+                </div>
+                <div class="card-body">
+                  <div v-if="passwordError" class="alert alert-danger mb-3">
+                    {{ passwordError }}
+                  </div>
+                  <div v-if="passwordSuccess" class="alert alert-success mb-3">
+                    {{ passwordSuccess }}
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">Current Password</label>
+                    <input type="password" class="form-control" v-model="passwordForm.currentPassword" placeholder="Enter current password">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">New Password</label>
+                    <input type="password" class="form-control" v-model="passwordForm.newPassword" placeholder="Enter new password">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-muted small mb-1">Confirm New Password</label>
+                    <input type="password" class="form-control" v-model="passwordForm.confirmPassword" placeholder="Confirm new password">
+                  </div>
+                  <button class="btn btn-primary" @click="changePassword" :disabled="isChangingPassword">
+                    <span v-if="isChangingPassword" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    {{ isChangingPassword ? 'Changing...' : 'Change Password' }}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div class="d-flex justify-content-end gap-2">
-            <!-- Cancel button removed -->
             <button class="btn btn-primary" @click="saveUserData" :disabled="isSaving">
               <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
               {{ isSaving ? 'Saving...' : 'Save Changes' }}

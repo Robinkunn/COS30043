@@ -110,6 +110,48 @@ if ($method === 'POST') {
         exit;
     }
 
+    // Change user password
+    if (isset($_GET['action']) && $_GET['action'] === 'change_password') {
+        // Expect JSON input
+        $username = mysqli_real_escape_string($conn, $input['username'] ?? '');
+        $currentPassword = mysqli_real_escape_string($conn, $input['currentPassword'] ?? '');
+        $newPassword = mysqli_real_escape_string($conn, $input['newPassword'] ?? '');
+
+        // Validate input
+        if (!$username || !$currentPassword || !$newPassword) {
+            echo json_encode(['success' => false, 'message' => 'All password fields are required.']);
+            mysqli_close($conn);
+            exit;
+        }
+
+        // Check if the current password is correct
+        $sql_check = "SELECT password FROM `$table` WHERE username='$username'";
+        $result_check = mysqli_query($conn, $sql_check);
+
+        if (mysqli_num_rows($result_check) > 0) {
+            $user = mysqli_fetch_assoc($result_check);
+            if ($user['password'] === $currentPassword) {
+                // Current password is correct, update to new password
+                // For a real application, you should hash the new password
+                // $hashedNewPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+                $sql_update = "UPDATE `$table` SET password='$newPassword' WHERE username='$username'";
+                if (mysqli_query($conn, $sql_update)) {
+                    echo json_encode(['success' => true, 'message' => 'Password changed successfully!']);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Error updating password.']);
+                }
+            } else {
+                // Incorrect current password
+                echo json_encode(['success' => false, 'message' => 'Incorrect current password.']);
+            }
+        } else {
+            // User not found
+            echo json_encode(['success' => false, 'message' => 'User not found.']);
+        }
+        mysqli_close($conn);
+        exit;
+    }
+
     // Login
     // Accept both application/x-www-form-urlencoded and JSON
     if (strpos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {

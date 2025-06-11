@@ -9,9 +9,11 @@ window.MyPurchase = {
     const isLoading = ref(true);
     const currentPage = ref(1);
     const itemsPerPage = ref(5);
-    const itemsPerPageOptions = [5, 10, 20, 50]; // Options for items per page
+    const itemsPerPageOptions = [5, 10, 20, 50];
+    const editingOrderId = ref(null); // Track which order is being edited
+    const editedItems = ref({}); // Store edited quantities
 
-    // Fetch orders and order items for the logged-in user
+    // Fetch orders and order items
     const fetchOrders = async () => {
       isLoading.value = true;
       const user = JSON.parse(sessionStorage.getItem('user') || sessionStorage.getItem('loggedInUser') || 'null');
@@ -21,7 +23,6 @@ window.MyPurchase = {
         return;
       }
 
-      // 1. Fetch orders for this user
       const ordersRes = await fetch(`api_orders.php?user_id=${user.id}`);
       const ordersData = await ordersRes.json();
       if (!ordersData.success || !Array.isArray(ordersData.orders)) {
@@ -30,7 +31,6 @@ window.MyPurchase = {
         return;
       }
 
-      // 2. For each order, fetch its items
       const ordersWithItems = await Promise.all(
         ordersData.orders.map(async (order) => {
           const itemsRes = await fetch(`api_order_items.php?order_id=${order.id}`);
@@ -38,7 +38,8 @@ window.MyPurchase = {
           return {
             ...order,
             products: Array.isArray(itemsData.items) ? itemsData.items.map(item => ({
-              id: item.product_id, // <-- Add this line
+              id: item.id, // Order item ID
+              product_id: item.product_id,
               name: item.product_name,
               qty: item.quantity,
               price: item.price,
@@ -52,50 +53,117 @@ window.MyPurchase = {
       isLoading.value = false;
     };
     
-  const deleteOrderItem = async (itemId, orderId) => {
-    try {
-      const response = await fetch('api_order_items.php', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `id=${itemId}&order_id=${orderId}`
-      });
-      const data = await response.json();
-      if (data.success) {
-        await fetchOrders(); // Refresh the order list
+    const deleteOrderItem = async (itemId, orderId) => {
+      try {
+        const response = await fetch('api_order_items.php', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: `id=${itemId}&order_id=${orderId}`
+        });
+        const data = await response.json();
+        if (data.success) {
+          await fetchOrders();
+        }
+        return data;
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        return { success: false, message: 'Network error' };
       }
-      return data;
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      return { success: false, message: 'Network error' };
-    }
-  };
+    };
 
-  const deleteOrder = async (orderId) => {
-    try {
-      const response = await fetch('api_orders.php', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ order_id: orderId })
-      });
-      const data = await response.json();
-      if (data.success) {
-        await fetchOrders(); // Refresh the order list
+    const deleteOrder = async (orderId) => {
+      try {
+        const response = await fetch('api_orders.php', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ order_id: orderId })
+        });
+        const data = await response.json();
+        if (data.success) {
+          await fetchOrders();
+        }
+        return data;
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        return { success: false, message: 'Network error' };
       }
-      return data;
-    } catch (error) {
-      console.error('Error deleting order:', error);
-      return { success: false, message: 'Network error' };
-    }
-  };
-    // --- Computed Properties ---
+    };
+    
+    // Start editing an order
+    const startEditing = (order) => {
+      editingOrderId.value = order.id;
+      // Initialize editedItems with current quantities
+      editedItems.value = {};
+      order.products.forEach(product => {
+        editedItems.value[product.id] = product.qty;
+      });
+    };
+    
+    // Cancel editing
+    const cancelEditing = () => {
+      editingOrderId.value = null;
+      editedItems.value = {};
+    };
+    
+    // Update item quantity in editedItems
+    const updateItemQuantity = (itemId, newQty) => {
+      editedItems.value[itemId] = parseInt(newQty) || 1;
+    };
+    
+    // Remove item from order
+    const removeItem = async (itemId, orderId) => {
+      if (confirm('Are you sure you want to remove this item from your order?')) {
+        await deleteOrderItem(itemId, orderId);
+      }
+    };
+    
+    // Save the edited order
+    const saveOrderChanges = async (order) => {
+      try {
+        // Prepare the updated items
+        const updatedItems = order.products.map(product => ({
+          id: product.id,
+          product_id: product.product_id,
+          product_name: product.name,
+          price: product.price,
+          quantity: editedItems.value[product.id] || product.qty,
+          img: product.img
+        })).filter(item => editedItems.value[item.id] > 0); // Remove items with 0 quantity
+        
+        // Call API to update order items
+        const response = await fetch('api_order_items.php', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order_id: order.id,
+            items: updatedItems
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          await fetchOrders(); // Refresh the order list
+          editingOrderId.value = null;
+          editedItems.value = {};
+        } else {
+          alert('Failed to update order: ' + (data.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error('Error updating order:', error);
+        alert('Network error while updating order');
+      }
+    };
+    
+    // Computed properties remain the same
     const filteredOrders = computed(() => {
       let orders = allOrders.value;
 
-      // Filter by active button
       if (activeFilter.value !== 'All Orders') {
         if (activeFilter.value === 'Pending') {
           orders = orders.filter(o => o.status === 'Shipped' || o.status === 'Processing');
@@ -110,7 +178,6 @@ window.MyPurchase = {
         }
       }
 
-      // Filter by search term
       if (searchTerm.value.trim() !== '') {
         const lowerSearch = searchTerm.value.toLowerCase();
         orders = orders.filter(order => {
@@ -124,19 +191,16 @@ window.MyPurchase = {
       return orders;
     });
     
-    // Paginated orders
     const paginatedOrders = computed(() => {
       const start = (currentPage.value - 1) * itemsPerPage.value;
       const end = start + itemsPerPage.value;
       return filteredOrders.value.slice(start, end);
     });
 
-    // Total pages
     const totalPages = computed(() => {
       return Math.ceil(filteredOrders.value.length / itemsPerPage.value);
     });
 
-    // Showing X to Y of Z entries
     const showingText = computed(() => {
       const total = filteredOrders.value.length;
       if (total === 0) return 'No orders found';
@@ -145,40 +209,6 @@ window.MyPurchase = {
       const end = Math.min(currentPage.value * itemsPerPage.value, total);
       return `Showing ${start} to ${end} of ${total} orders`;
     });
-
-    const editOrder = (order) => {
-      // Store the entire order object to be picked up by the cart page
-      sessionStorage.setItem('editingOrder', JSON.stringify(order));
-      // Navigate to the cart's edit mode
-      router.push(`/cart/edit/${order.id}`);
-    };
-    
-    // --- Methods ---
-    const setFilter = (filter) => {
-      activeFilter.value = filter;
-      currentPage.value = 1;
-    };
-
-    const changePage = (page) => {
-      if (page >= 1 && page <= totalPages.value) {
-        currentPage.value = page;
-      }
-    };
-
-    const changeItemsPerPage = (value) => {
-      itemsPerPage.value = value;
-      currentPage.value = 1; // Reset to first page when changing items per page
-    };
-
-    const getStatusBadgeClass = (status) => {
-      switch (status) {
-        case 'Delivered': return 'bg-success';
-        case 'Shipped': return 'bg-warning text-dark';
-        case 'Cancelled': return 'bg-danger';
-        case 'Processing': return 'bg-info';
-        default: return 'bg-secondary';
-      }
-    };
 
     const formatCurrency = (value) => {
       const num = Number(value);
@@ -195,6 +225,16 @@ window.MyPurchase = {
       });
     };
 
+    const getStatusBadgeClass = (status) => {
+      switch (status) {
+        case 'Delivered': return 'bg-success';
+        case 'Shipped': return 'bg-warning text-dark';
+        case 'Cancelled': return 'bg-danger';
+        case 'Processing': return 'bg-info';
+        default: return 'bg-secondary';
+      }
+    };
+
     const confirmDeleteOrder = (orderId) => {
       if (window.confirm('Are you sure you want to delete this order?')) {
         deleteOrder(orderId);
@@ -208,22 +248,38 @@ window.MyPurchase = {
       filters,
       activeFilter,
       filteredOrders: paginatedOrders,
-      setFilter,
+      setFilter: (filter) => {
+        activeFilter.value = filter;
+        currentPage.value = 1;
+      },
       getStatusBadgeClass,
       formatCurrency,
       formatDate,
       isLoading,
       currentPage,
       totalPages,
-      changePage,
+      changePage: (page) => {
+        if (page >= 1 && page <= totalPages.value) {
+          currentPage.value = page;
+        }
+      },
       itemsPerPage,
       itemsPerPageOptions,
-      changeItemsPerPage,
+      changeItemsPerPage: (value) => {
+        itemsPerPage.value = value;
+        currentPage.value = 1;
+      },
       showingText,
       fetchOrders,
       deleteOrder,
       confirmDeleteOrder,
-      editOrder,
+      editingOrderId,
+      editedItems,
+      startEditing,
+      cancelEditing,
+      updateItemQuantity,
+      removeItem,
+      saveOrderChanges
     };
   },
   template: `
@@ -233,10 +289,8 @@ window.MyPurchase = {
           <h2 class="fw-bold"><i class="bi bi-receipt me-2"></i>My Purchase History</h2>
           <p class="text-muted">View and manage all your past orders</p>
         </div>
-        <!-- Search bar and filters removed -->
       </div>
 
-      <!-- Orders List -->
       <div class="row">
         <div class="col-12">
           <div v-if="isLoading" class="text-center py-5">
@@ -264,23 +318,55 @@ window.MyPurchase = {
                 <hr>
                 <div class="row">
                   <!-- Product List -->
-                  <div class="col-lg-6 mb-3" v-for="product in order.products" :key="product.name">
+                  <div class="col-lg-6 mb-3" v-for="product in order.products" :key="product.id">
                     <div class="d-flex">
                       <img :src="product.img" :alt="product.name" class="img-thumbnail me-3" style="width: 80px; height: 80px; object-fit: cover;">
-                      <div>
+                      <div class="flex-grow-1">
                         <h6 class="mb-1">{{ product.name }}</h6>
-                        <p class="text-muted small mb-1">Qty: {{ product.qty }}</p>
+                        <div v-if="editingOrderId === order.id" class="d-flex align-items-center">
+                          <div class="input-group input-group-sm" style="width: 120px;">
+                            <button class="btn btn-outline-secondary" type="button" 
+                              @click="updateItemQuantity(product.id, (editedItems[product.id] || product.qty) - 1)"
+                              :disabled="(editedItems[product.id] || product.qty) <= 1">
+                              -
+                            </button>
+                            <input type="number" class="form-control text-center" 
+                              v-model="editedItems[product.id]" 
+                              @change="updateItemQuantity(product.id, $event.target.value)"
+                              :value="editedItems[product.id] || product.qty" min="1">
+                            <button class="btn btn-outline-secondary" type="button" 
+                              @click="updateItemQuantity(product.id, (editedItems[product.id] || product.qty) + 1)">
+                              +
+                            </button>
+                          </div>
+                          <button class="btn btn-sm btn-outline-danger ms-2" 
+                            @click="removeItem(product.id, order.id)">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                        <div v-else>
+                          <p class="text-muted small mb-1">Qty: {{ product.qty }}</p>
+                        </div>
                         <p class="text-muted small mb-0">{{ formatCurrency(product.price) }}</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div class="d-flex justify-content-end mt-3">
-                  <!-- Action Buttons based on status -->
-                    <button class="btn btn-sm btn-outline-primary me-2" @click="editOrder(order)">
+                  <!-- Action Buttons -->
+                  <template v-if="editingOrderId === order.id">
+                    <button class="btn btn-sm btn-success me-2" @click="saveOrderChanges(order)">
+                      <i class="bi bi-check-circle me-1"></i> Save Changes
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" @click="cancelEditing">
+                      <i class="bi bi-x-circle me-1"></i> Cancel
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button class="btn btn-sm btn-outline-primary me-2" @click="startEditing(order)">
                       <i class="bi bi-pencil-square me-1"></i> Edit Order
                     </button>
-                  <!-- Delete Button -->
+                  </template>
                   <button class="btn btn-sm btn-danger"
                     @click="confirmDeleteOrder(order.id)">
                     <i class="bi bi-trash me-1"></i> Delete

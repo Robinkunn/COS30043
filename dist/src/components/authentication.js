@@ -380,7 +380,7 @@ window.Authentication = {
                     required
                   >
                   <label class="form-check-label" for="agreeTerms">
-                    I agree to the <a href="#">Terms and Conditions</a>
+                    I agree to the Terms and Conditions
                   </label>
                 </div>
                 <button type="submit" class="btn btn-danger w-100" style="

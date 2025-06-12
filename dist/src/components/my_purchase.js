@@ -322,7 +322,16 @@ window.MyPurchase = {
                     </p>
                     <p class="mb-0 fw-bold">
                       <i class="bi bi-currency-dollar me-1"></i>
-                      Total: {{ formatCurrency(order.products.reduce((sum, item) => sum + (item.price * item.qty), 0)) }}
+                      Total: {{
+                        // Calculate subtotal
+                        (() => {
+                          const subtotal = order.products.reduce((sum, item) => sum + (item.price * item.qty), 0);
+                          const shipping = 5.00;
+                          const tax = subtotal * 0.08;
+                          const total = subtotal + shipping + tax;
+                          return formatCurrency(total);
+                        })()
+                      }}
                     </p>
                   </div>
                 </div>

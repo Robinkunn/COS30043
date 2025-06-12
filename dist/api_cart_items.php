@@ -19,8 +19,8 @@ function getInput() {
 $input = getInput();
 
 // Database Connection
-$conn = mysqli_connect('localhost', 'root', '', 'cos30043');
-// $conn = mysqli_connect('sql102.infinityfree.com', 'if0_39191103', 'Rctz20041', 'if0_39191103_pizzahatdb');
+// $conn = mysqli_connect('localhost', 'root', '', 'cos30043');
+$conn = mysqli_connect('sql102.infinityfree.com', 'if0_39191103', 'Rctz20041', 'if0_39191103_pizzahatdb');
 
 mysqli_set_charset($conn, 'utf8');
 

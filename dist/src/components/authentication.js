@@ -36,8 +36,8 @@ window.Authentication = {
       form.append('username', loginForm.value.username);
       form.append('password', loginForm.value.password);
 
-      // fetch('api_user.php', {
-      fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI', {
+      fetch('api_user.php', {
+      // fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI', {
         method: 'POST',
         body: form
       })
@@ -56,8 +56,8 @@ window.Authentication = {
 
 
     const handleRegister = () => {
-    // fetch('api_user.php?action=register', {
-    fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI?action=register', {
+    fetch('api_user.php?action=register', {
+    // fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI?action=register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(registerForm.value)
@@ -380,7 +380,7 @@ window.Authentication = {
                     required
                   >
                   <label class="form-check-label" for="agreeTerms">
-                    I agree to the Terms and Conditions
+                    I agree to the <a href="#">Terms and Conditions</a>
                   </label>
                 </div>
                 <button type="submit" class="btn btn-danger w-100" style="

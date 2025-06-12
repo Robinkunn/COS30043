@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza Hat - Product</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navbar will be loaded here -->
+  <div id="navbar"></div>
+  
+  <!-- Hero Section -->
+  <div class="pizza-hat-hero text-center">
+    <div class="container">
+      <h1 class="display-4 fw-bold mb-3">Order Pizza Online</h1>
+      <p class="lead mb-4">Delicious pizzas made with authentic Italian recipes, delivered to your door</p>
+      <div class="d-flex justify-content-center gap-3">
+        <a href="#menu" class="btn btn-danger btn-lg px-4">View Menu</a>
+        <a href="#cart" class="btn btn-outline-light btn-lg px-4">Your Cart</a>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="container mb-5">
+    <div class="row">
+      <!-- Menu Section -->
+      <div class="col-lg-8">
+        <div id="menu">
+          <h2 class="mb-4 fw-bold">Our Menu</h2>
+          
+          <!-- Category Tabs -->
+          <ul class="nav nav-pills mb-4 pizza-hat-nav-pills" id="menuTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="pizzas-tab" data-bs-toggle="pill" data-bs-target="#pizzas" type="button" role="tab">
+                <i class="bi bi-egg-fried me-1"></i> Pizzas
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="sides-tab" data-bs-toggle="pill" data-bs-target="#sides" type="button" role="tab">
+                <i class="bi bi-basket me-1"></i> Sides
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="drinks-tab" data-bs-toggle="pill" data-bs-target="#drinks" type="button" role="tab">
+                <i class="bi bi-cup-straw me-1"></i> Drinks
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="desserts-tab" data-bs-toggle="pill" data-bs-target="#desserts" type="button" role="tab">
+                <i class="bi bi-cake me-1"></i> Desserts
+              </button>
+            </li>
+          </ul>
+          
+          <!-- Tab Content -->
+          <div class="tab-content" id="menuTabsContent">
+            <!-- Pizzas Tab -->
+            <div class="tab-pane fade show active" id="pizzas" role="tabpanel">
+              <div class="row">
+                <!-- Margherita -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591" class="card-img-top pizza-hat-food-img" alt="Margherita Pizza">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Margherita</h5>
+                        <span class="badge pizza-hat-badge-veg">Veg</span>
+                      </div>
+                      <p class="pizza-hat-food-description">Classic pizza with tomato sauce, mozzarella, and fresh basil</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$12.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Pepperoni -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1593504049359-74330189a345" class="card-img-top pizza-hat-food-img" alt="Pepperoni Pizza">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Pepperoni</h5>
+                        <span class="badge bg-danger">Non-Veg</span>
+                      </div>
+                      <p class="pizza-hat-food-description">Tomato sauce, mozzarella, and spicy pepperoni</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$14.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Veggie -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1571066811602-716837d681de" class="card-img-top pizza-hat-food-img" alt="Veggie Pizza">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Veggie Delight</h5>
+                        <span class="badge pizza-hat-badge-veg">Veg</span>
+                      </div>
+                      <p class="pizza-hat-food-description">Bell peppers, mushrooms, onions, olives, and mozzarella</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$13.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- BBQ Chicken -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1627626775846-122b778965ae" class="card-img-top pizza-hat-food-img" alt="BBQ Chicken Pizza">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">BBQ Chicken</h5>
+                        <span class="badge bg-danger">Non-Veg</span>
+                      </div>
+                      <p class="pizza-hat-food-description">BBQ sauce, chicken, red onions, and cilantro</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$15.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Quattro Formaggi -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1604382354936-07c5d9983bd3" class="card-img-top pizza-hat-food-img" alt="Quattro Formaggi">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Quattro Formaggi</h5>
+                        <span class="badge pizza-hat-badge-veg">Veg</span>
+                      </div>
+                      <p class="pizza-hat-food-description">Four cheese blend with mozzarella, gorgonzola, parmesan, and provolone</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$16.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Diavola -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1620374645498-af6bd681a0bd" class="card-img-top pizza-hat-food-img" alt="Diavola Pizza">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Diavola</h5>
+                        <div>
+                          <span class="badge bg-danger">Non-Veg</span>
+                          <span class="badge pizza-hat-badge-spicy">Spicy</span>
+                        </div>
+                      </div>
+                      <p class="pizza-hat-food-description">Spicy salami, tomato sauce, mozzarella, and chili flakes</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$16.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Sides Tab -->
+            <div class="tab-pane fade" id="sides" role="tabpanel">
+              <div class="row">
+                <!-- Garlic Bread -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1585032226651-759b368d7246" class="card-img-top pizza-hat-food-img" alt="Garlic Bread">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Garlic Bread</h5>
+                      <p class="pizza-hat-food-description">Freshly baked bread with garlic butter and herbs</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$5.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Mozzarella Sticks -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1562967916-eb82221dfb92" class="card-img-top pizza-hat-food-img" alt="Mozzarella Sticks">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Mozzarella Sticks</h5>
+                      <p class="pizza-hat-food-description">Breaded mozzarella sticks with marinara sauce</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$7.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Chicken Wings -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1567620832903-9fc6debc209f" class="card-img-top pizza-hat-food-img" alt="Chicken Wings">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="pizza-hat-food-title">Chicken Wings</h5>
+                        <span class="badge pizza-hat-badge-spicy">Spicy</span>
+                      </div>
+                      <p class="pizza-hat-food-description">Crispy chicken wings with buffalo sauce</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$9.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Drinks Tab -->
+            <div class="tab-pane fade" id="drinks" role="tabpanel">
+              <div class="row">
+                <!-- Soda -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1554866585-cd94860890b7" class="card-img-top pizza-hat-food-img" alt="Soda">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Soft Drink</h5>
+                      <p class="pizza-hat-food-description">Coke, Diet Coke, Sprite, Fanta, or Dr. Pepper</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$2.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Iced Tea -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1558160074-4d7d8bdf4256" class="card-img-top pizza-hat-food-img" alt="Iced Tea">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Iced Tea</h5>
+                      <p class="pizza-hat-food-description">Freshly brewed sweet or unsweetened iced tea</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$3.49</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Italian Soda -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1624552184280-9e9631bbeee9" class="card-img-top pizza-hat-food-img" alt="Italian Soda">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Italian Soda</h5>
+                      <p class="pizza-hat-food-description">Carbonated water with flavored syrup</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$4.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Desserts Tab -->
+            <div class="tab-pane fade" id="desserts" role="tabpanel">
+              <div class="row">
+                <!-- Tiramisu -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1535920527002-b35e96722eb9" class="card-img-top pizza-hat-food-img" alt="Tiramisu">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Tiramisu</h5>
+                      <p class="pizza-hat-food-description">Classic Italian dessert with coffee-soaked ladyfingers</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$6.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Cannoli -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1614707267531-bc4533845b32" class="card-img-top pizza-hat-food-img" alt="Cannoli">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Cannoli</h5>
+                      <p class="pizza-hat-food-description">Crispy pastry shells filled with sweet ricotta</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$5.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Chocolate Lava Cake -->
+                <div class="col-md-6 col-lg-4">
+                  <div class="card pizza-hat-food-card">
+                    <img src="https://images.unsplash.com/photo-1564355808539-22fda35bed7e" class="card-img-top pizza-hat-food-img" alt="Chocolate Lava Cake">
+                    <div class="card-body">
+                      <h5 class="pizza-hat-food-title">Chocolate Lava Cake</h5>
+                      <p class="pizza-hat-food-description">Warm chocolate cake with a molten center</p>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="pizza-hat-food-price">$7.99</span>
+                        <button class="btn btn-sm btn-outline-danger">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Cart Section -->
+      <div class="col-lg-4">
+        <div id="cart" class="pizza-hat-cart-summary">
+          <h3 class="mb-4 fw-bold">Your Order</h3>
+          
+          <!-- Empty Cart State -->
+          <div class="pizza-hat-empty-cart mb-4">
+            <i class="bi bi-cart-x text-danger" style="font-size: 2.5rem;"></i>
+            <h5 class="mt-3">Your cart is empty</h5>
+            <p class="mb-0">Add some delicious items to get started!</p>
+          </div>
+          
+          <!-- Cart Items (hidden when empty) -->
+          <div class="cart-items d-none">
+            <div class="pizza-hat-cart-item">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="mb-1">Margherita Pizza</h6>
+                  <small class="text-muted">Regular</small>
+                </div>
+                <span>$12.99</span>
+              </div>
+              <div class="d-flex justify-content-between mt-2">
+                <div class="input-group pizza-hat-quantity-control">
+                  <button class="btn btn-outline-secondary" type="button">-</button>
+                  <input type="text" class="form-control text-center" value="1">
+                  <button class="btn btn-outline-secondary" type="button">+</button>
+                </div>
+                <button class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="pizza-hat-cart-item">
+              <div class="d-flex justify-content-between">
+                <div>
+                  <h6 class="mb-1">Garlic Bread</h6>
+                </div>
+                <span>$5.99</span>
+              </div>
+              <div class="d-flex justify-content-between mt-2">
+                <div class="input-group pizza-hat-quantity-control">
+                  <button class="btn btn-outline-secondary" type="button">-</button>
+                  <input type="text" class="form-control text-center" value="1">
+                  <button class="btn btn-outline-secondary" type="button">+</button>
+                </div>
+                <button class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+            
+            <hr>
+            
+            <div class="d-flex justify-content-between mb-2">
+              <span>Subtotal:</span>
+              <span>$18.98</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Delivery Fee:</span>
+              <span>$2.99</span>
+            </div>
+            <div class="d-flex justify-content-between mb-3 fw-bold">
+              <span>Total:</span>
+              <span>$21.97</span>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button class="btn btn-danger">Proceed to Checkout</button>
+              <button class="btn btn-outline-secondary">Continue Shopping</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Load nav_bar.html into #navbar
+    fetch('nav_bar.html')
+      .then(response => response.text())
+      .then(data => {
+        const navMatch = data.match(/<nav[\s\S]*<\/nav>/i);
+        document.getElementById('navbar').innerHTML = navMatch ? navMatch[0] : data;
+        
+        // Initialize Bootstrap tooltips if present
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+      });
+
+    // Activate tab based on URL hash
+    document.addEventListener('DOMContentLoaded', function () {
+      const hash = window.location.hash;
+      if (hash) {
+        const tabMap = {
+          '#pizzas': 'pizzas-tab',
+          '#sides': 'sides-tab',
+          '#drinks': 'drinks-tab',
+          '#desserts': 'desserts-tab'
+        };
+        const tabId = tabMap[hash];
+        if (tabId) {
+          const tabTrigger = document.getElementById(tabId);
+          if (tabTrigger) {
+            new bootstrap.Tab(tabTrigger).show();
+            // Optionally scroll to menu section
+            const menuSection = document.getElementById('menu');
+            if (menuSection) {
+              menuSection.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        }
+      }
+    });
+
+    // Simulate adding items to cart (for demo purposes)
+    document.querySelectorAll('.btn-outline-danger').forEach(button => {
+      button.addEventListener('click', function() {
+        const emptyCart = document.querySelector('.pizza-hat-empty-cart');
+        const cartItems = document.querySelector('.cart-items');
+        
+        emptyCart.classList.add('d-none');
+        cartItems.classList.remove('d-none');
+      });
+    });
+  </script>
+</body>
+</html>

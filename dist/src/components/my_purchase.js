@@ -23,8 +23,8 @@ window.MyPurchase = {
         return;
       }
 
-      // const ordersRes = await fetch(`api_orders.php?user_id=${user.id}`);
-      const ordersRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders?user_id=${user.id}`);
+      const ordersRes = await fetch(`api_orders.php?user_id=${user.id}`);
+      // const ordersRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders?user_id=${user.id}`);
       const ordersData = await ordersRes.json();
       if (!ordersData.success || !Array.isArray(ordersData.orders)) {
         allOrders.value = [];
@@ -34,8 +34,8 @@ window.MyPurchase = {
 
       const ordersWithItems = await Promise.all(
         ordersData.orders.map(async (order) => {
-          // const itemsRes = await fetch(`api_order_items.php?order_id=${order.id}`);
-          const itemsRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items?order_id=${order.id}`);
+          const itemsRes = await fetch(`api_order_items.php?order_id=${order.id}`);
+          // const itemsRes = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items?order_id=${order.id}`);
           const itemsData = await itemsRes.json();
           return {
             ...order,
@@ -58,8 +58,8 @@ window.MyPurchase = {
     const deleteOrderItem = async (itemId, orderId) => {
       try {
         // Use POST with _method: 'DELETE' and JSON body (same as cart.js)
-        // const response = await fetch('api_order_items.php', {
-        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
+        const response = await fetch('api_order_items.php', {
+        // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,8 +80,8 @@ window.MyPurchase = {
     const deleteOrder = async (orderId) => {
       try {
         // Use POST with _method: 'DELETE'
-        // const response = await fetch('api_orders.php', {
-        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', {
+        const response = await fetch('api_orders.php', {
+        // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -141,8 +141,8 @@ window.MyPurchase = {
         })).filter(item => editedItems.value[item.id] > 0);
 
         // Use POST with _method: 'UPDATE'
-        // const response = await fetch('api_order_items.php', {
-        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
+        const response = await fetch('api_order_items.php', {
+        // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -322,16 +322,7 @@ window.MyPurchase = {
                     </p>
                     <p class="mb-0 fw-bold">
                       <i class="bi bi-currency-dollar me-1"></i>
-                      Total: {{
-                        // Calculate subtotal
-                        (() => {
-                          const subtotal = order.products.reduce((sum, item) => sum + (item.price * item.qty), 0);
-                          const shipping = 5.00;
-                          const tax = subtotal * 0.08;
-                          const total = subtotal + shipping + tax;
-                          return formatCurrency(total);
-                        })()
-                      }}
+                      Total: {{ formatCurrency(order.products.reduce((sum, item) => sum + (item.price * item.qty), 0)) }}
                     </p>
                   </div>
                 </div>

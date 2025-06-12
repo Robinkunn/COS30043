@@ -26,8 +26,8 @@ window.Cart = {
       }
 
       try {
-        const response = await fetch(`api_carts.php?user_id=${user.id}`);
-        // const response = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts?user_id=${user.id}`);
+        // const response = await fetch(`api_carts.php?user_id=${user.id}`);
+        const response = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts?user_id=${user.id}`);
         const data = await response.json();
 
         if (data.success && data.cart) {
@@ -76,8 +76,8 @@ window.Cart = {
       if (!confirm('Are you sure you want to remove this item?')) return;
       try {
         // Use POST with _method: 'DELETE'
-        const response = await fetch('api_cart_items.php', {
-        // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
+        // const response = await fetch('api_cart_items.php', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: cartItemId, _method: 'DELETE' })
@@ -106,8 +106,8 @@ window.Cart = {
 
       try {
         // Use POST with _method: 'UPDATE'
-        const response = await fetch('api_cart_items.php', {
-        // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
+        // const response = await fetch('api_cart_items.php', {
+        const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: cartItemId, quantity: quantity, _method: 'UPDATE' })
@@ -140,8 +140,8 @@ window.Cart = {
       if (!user || !user.id) return;
 
       try {
-          const response = await fetch('api_carts.php', {
-          // const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts', {
+          // const response = await fetch('api_carts.php', {
+          const response = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: user.id, _method: 'DELETE' })
@@ -191,8 +191,8 @@ window.Cart = {
         tax: tax.value
       };
       
-      const orderRes = await fetch('api_orders.php', { 
-      // const orderRes = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', { 
+      // const orderRes = await fetch('api_orders.php', { 
+      const orderRes = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_orders', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify(orderPayload) 
@@ -206,8 +206,8 @@ window.Cart = {
       
       const orderId = orderData.order_id;
       const itemsPayload = { order_id: orderId, items: orderPayload.items };
-      const itemsRes = await fetch('api_order_items.php', { 
-      // const itemsRes = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', { 
+      // const itemsRes = await fetch('api_order_items.php', { 
+      const itemsRes = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_order_items', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
         body: JSON.stringify(itemsPayload) 
@@ -223,8 +223,8 @@ window.Cart = {
       try {
         // Delete all selected items from cart using POST with _method: 'DELETE'
         const deletePromises = selectedItems.value.map(cartItemId =>
-          fetch('api_cart_items.php', {
-          // fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
+          // fetch('api_cart_items.php', {
+          fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: cartItemId, _method: 'DELETE' })

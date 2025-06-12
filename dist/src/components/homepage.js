@@ -57,12 +57,11 @@ window.HomePage = {
         }
         return;
       }
-    
+
       try {
         // 2. Get or Create User's Cart to get its ID.
-        // First, try to get the cart from sessionStorage to reduce API calls.
         let cart = JSON.parse(sessionStorage.getItem('cart'));
-    
+
         // If cart is not in session or doesn't belong to the current user, fetch it from the API.
         if (!cart || !cart.id || cart.user_id !== user.id) {
           // const cartResponse = await fetch(`api_carts.php?user_id=${user.id}`);
@@ -71,7 +70,6 @@ window.HomePage = {
           
           if (cartData.success) {
             cart = cartData.cart;
-            // Store the full cart object (which includes items) in session storage.
             sessionStorage.setItem('cart', JSON.stringify(cart));
           } else {
             alert(`Error: Could not access your cart. ${cartData.message || ''}`);
@@ -82,7 +80,7 @@ window.HomePage = {
         
         // At this point, we must have a valid cart.id.
         const cartId = cart.id;
-    
+
         // 3. Prepare item data for the API.
         const itemData = {
           cart_id: cartId,
@@ -92,7 +90,7 @@ window.HomePage = {
           img: item.img,
           quantity: 1 // The API will handle incrementing the quantity if the item already exists.
         };
-    
+
         // 4. Call the API to add the item to the cart.
         // const addItemResponse = await fetch('api_cart_items.php', {
         const addItemResponse = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
@@ -102,19 +100,18 @@ window.HomePage = {
           },
           body: JSON.stringify(itemData)
         });
-    
+
         const addItemResult = await addItemResponse.json();
-    
+
         // 5. Handle the result from the API.
         if (addItemResult.success) {
           alert(`${item.name} has been added to your cart.`);
-          // Invalidate the session storage cart data so it gets refetched with updated items next time.
-          sessionStorage.removeItem('cart'); 
+          sessionStorage.removeItem('cart'); // Invalidate so it gets refetched next time
         } else {
           alert(`Failed to add item to cart: ${addItemResult.message}`);
           console.error('API Error adding item:', addItemResult.message);
         }
-    
+
       } catch (error) {
         console.error('An error occurred while adding to cart:', error);
         alert('An unexpected error occurred. Please check your connection and try again.');

@@ -6,17 +6,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 $method = $_SERVER['REQUEST_METHOD'];
-
-function getInput() {
-    $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
-    if (stripos($contentType, 'application/json') !== false) {
-        return json_decode(file_get_contents('php://input'), true);
-    } else {
-        // For form data or x-www-form-urlencoded
-        return $_POST ?: [];
-    }
-}
-$input = getInput();
+$input = json_decode(file_get_contents('php://input'), true);
 
 // Database Connection
 // $conn = mysqli_connect('localhost', 'root', '', 'cos30043');
@@ -33,59 +23,7 @@ function sendError($message, $code = 400) {
     exit;
 }
 
-if ($method === 'POST' && isset($input['_method']) && $input['_method'] === 'UPDATE') {
-    // Update a specific cart item's quantity. If quantity is 0 or less, delete the item.
-    $id = intval($input['id'] ?? 0); // cart_items.id
-    $quantity = intval($input['quantity'] ?? -1);
-
-    if (!$id || $quantity < 0) {
-        sendError('Item ID (id) and a non-negative quantity are required in the request body.');
-    }
-
-    if ($quantity > 0) {
-        $sql = "UPDATE `$table` SET quantity = $quantity WHERE id = $id";
-        if (mysqli_query($conn, $sql) && mysqli_affected_rows($conn) > 0) {
-            echo json_encode(['success' => true, 'message' => 'Item quantity updated.']);
-        } else {
-            sendError('Failed to update item quantity or item not found.', 500);
-        }
-    } else {
-        // If quantity is 0 or less, delete the item
-        $sql = "DELETE FROM `$table` WHERE id = $id";
-        if (mysqli_query($conn, $sql) && mysqli_affected_rows($conn) > 0) {
-            echo json_encode(['success' => true, 'message' => 'Item removed from cart.']);
-        } else {
-            sendError('Failed to remove item or item not found.', 500);
-        }
-    }
-    mysqli_close($conn);
-    exit;
-} elseif ($method === 'POST' && isset($input['_method']) && $input['_method'] === 'DELETE') {
-    // Delete a specific cart item by its ID
-    $id = intval($input['id'] ?? 0);
-    $cart_id = intval($input['cart_id'] ?? 0);
-
-    if (!$id) {
-        sendError('Item ID (id) is required in the request body.');
-    }
-
-    // Optionally, verify the item belongs to the specified cart (if cart_id provided)
-    if ($cart_id) {
-        $check = mysqli_query($conn, "SELECT id FROM `$table` WHERE id = $id AND cart_id = $cart_id");
-        if (mysqli_num_rows($check) === 0) {
-            sendError('Item not found in specified cart.', 404);
-        }
-    }
-
-    $sql = "DELETE FROM `$table` WHERE id = $id";
-    if (mysqli_query($conn, $sql)) {
-        echo json_encode(['success' => true, 'message' => 'Item removed from cart.']);
-    } else {
-        sendError('Failed to remove item.', 500);
-    }
-    mysqli_close($conn);
-    exit;
-} elseif ($method === 'POST') {
+if ($method === 'POST') {
     // Add a product to a cart. If the product already exists, it increments the quantity.
     $cart_id = intval($input['cart_id'] ?? 0);
     $product_id = mysqli_real_escape_string($conn, $input['product_id'] ?? '');
@@ -148,6 +86,58 @@ if ($method === 'GET') {
     }
 
     echo json_encode(['success' => true, 'items' => $items]);
+    mysqli_close($conn);
+    exit;
+}
+
+if ($method === 'PUT') {
+    // Update a specific cart item's quantity. If quantity is 0 or less, delete the item.
+    $id = intval($input['id'] ?? 0); // This is the cart_items.id (primary key)
+    $quantity = intval($input['quantity'] ?? -1); // Use -1 to detect if not provided
+
+    if (!$id || $quantity < 0) {
+        sendError('Item ID (id) and a non-negative quantity are required in the request body.');
+    }
+
+    if ($quantity > 0) {
+        // Update the quantity for the given item
+        $sql = "UPDATE `$table` SET quantity = $quantity WHERE id = $id";
+        if (mysqli_query($conn, $sql) && mysqli_affected_rows($conn) > 0) {
+            echo json_encode(['success' => true, 'message' => 'Item quantity updated.']);
+        } else {
+            sendError('Failed to update item quantity or item not found.', 500);
+        }
+    } else {
+        // Quantity is 0, so remove the item from the cart
+        $sql = "DELETE FROM `$table` WHERE id = $id";
+        if (mysqli_query($conn, $sql) && mysqli_affected_rows($conn) > 0) {
+            echo json_encode(['success' => true, 'message' => 'Item removed from cart.']);
+        } else {
+            sendError('Failed to remove item or item not found.', 500);
+        }
+    }
+    mysqli_close($conn);
+    exit;
+}
+
+if ($method === 'DELETE') {
+    // Delete a specific cart item by its ID, regardless of quantity
+    $id = intval($input['id'] ?? 0); // This is the cart_items.id (primary key)
+
+    if (!$id) {
+        sendError('Item ID (id) is required in the request body.');
+    }
+
+    $sql = "DELETE FROM `$table` WHERE id = $id";
+    if (mysqli_query($conn, $sql)) {
+        if (mysqli_affected_rows($conn) > 0) {
+            echo json_encode(['success' => true, 'message' => 'Item removed from cart.']);
+        } else {
+            sendError('Item not found.', 404);
+        }
+    } else {
+        sendError('Failed to remove item.', 500);
+    }
     mysqli_close($conn);
     exit;
 }

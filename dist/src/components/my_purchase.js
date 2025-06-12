@@ -322,7 +322,11 @@ window.MyPurchase = {
                     </p>
                     <p class="mb-0 fw-bold">
                       <i class="bi bi-currency-dollar me-1"></i>
-                      Total: {{ formatCurrency(order.products.reduce((sum, item) => sum + (item.price * item.qty), 0)) }}
+                      Total: {{
+                        formatCurrency(
+                          order.products.reduce((sum, item) => sum + (item.price * item.qty), 0) * 1.08 + 5
+                        )
+                      }}
                     </p>
                   </div>
                 </div>

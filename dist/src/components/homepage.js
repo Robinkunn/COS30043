@@ -64,8 +64,8 @@ window.HomePage = {
 
         // If cart is not in session or doesn't belong to the current user, fetch it from the API.
         if (!cart || !cart.id || cart.user_id !== user.id) {
-          const cartResponse = await fetch(`api_carts.php?user_id=${user.id}`);
-          // const cartResponse = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts?user_id=${user.id}`);
+          // const cartResponse = await fetch(`api_carts.php?user_id=${user.id}`);
+          const cartResponse = await fetch(`https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_carts?user_id=${user.id}`);
           const cartData = await cartResponse.json();
           
           if (cartData.success) {
@@ -92,8 +92,8 @@ window.HomePage = {
         };
 
         // 4. Call the API to add the item to the cart.
-        const addItemResponse = await fetch('api_cart_items.php', {
-        // const addItemResponse = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
+        // const addItemResponse = await fetch('api_cart_items.php', {
+        const addItemResponse = await fetch('https://us-central1-pizzahat.cloudfunctions.net/proxyAPI/api_cart_items', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

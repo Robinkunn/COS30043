@@ -7,7 +7,7 @@ exports.proxyAPI = functions.https.onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type");
 
-  // Handle preflight request
+  // Handle preflight request LF
   if (req.method === "OPTIONS") {
     res.status(204).send("");
     return;
